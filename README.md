@@ -14,4 +14,4 @@ with the CRC_Simula_Library from within the [Arduino IDE](https://www.arduino.cc
   * The main source file is: Simula_BehaviorTree.ino
   
   ## Tree Visualization
-  The current state of the behavior tree can be found here: https://www.gliffy.com/go/html5/10755293
+  The current state of the behavior tree can be found here: https://www.gliffy.com/go/publish/10755293
