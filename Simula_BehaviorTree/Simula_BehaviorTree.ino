@@ -59,7 +59,8 @@ Do_Nothing doNothing(80);
 void setup() {
 	Serial.begin(115200);
 	Serial.println(F("Booting."));
-
+	
+	//Visualize the tree here: https://www.gliffy.com/go/publish/10755293
 	initializeSystem();
 	behaviorTree.setRootChild(&selector[0]);
 	selector[0].addChildren({ &buttonStop, &batteryCheck, &orientationCheck, &selector[1], &randomSort[0] });
@@ -73,7 +74,6 @@ void setup() {
 	crcAudio.setVolume(40, 40); //0 = loudest, 60 = softest ?
 	
 	if (hardware.sdInitialized) {
-		//crcAudio.playRandomAudio(F("effects/PwrDn_"), 10, F(".mp3"));
 		crcAudio.playRandomAudio(F("effects/PwrUp_"), 10, F(".mp3"));
 	}
 	Serial.println(F("Setup complete."));
