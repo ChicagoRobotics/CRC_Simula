@@ -12,3 +12,6 @@ with the CRC_Simula_Library from within the [Arduino IDE](https://www.arduino.cc
 * Ensure that you have the Project 3rd party libraries installed as documented in: http://www.chicagorobotics.net/programming/ under the section for 3rd party libraries.
 * Open the Project Solution File from within Visual Studio *Simula_BehaviorTree.sln* 
   * The main source file is: Simula_BehaviorTree.ino
+  
+  ## Tree Visualization
+  The current state of the behavior tree can be found here: https://www.gliffy.com/go/html5/10755293
