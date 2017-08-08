@@ -1,7 +1,9 @@
 # CRC_Simula
 Visual Studio Arduino Project for Simula®
 
-This repository contains the Arduino source code for Simula® structured as a Visual Studio project.
+This repository contains the Arduino source code for Simula® structured as a Visual Studio project. 
+If you are not setup/familiar with using Visual Studio for Arduino projects, we recommend that you work
+with the CRC_Simula_Library from within the [Arduino IDE](https://www.arduino.cc/en/Main/Software).
 
 ## Project Setup
 
