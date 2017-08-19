@@ -1,4 +1,8 @@
-// BehaviorTree.h
+/*
+Name:		BehaviorTree.h
+Created:	6/11/2016 2:05:02 PM
+Author:	jlaing
+*/
 
 #ifndef _BEHAVIORTREE_h
 #define _BEHAVIORTREE_h
@@ -9,7 +13,7 @@
 	#include "WProgram.h"
 #endif
 
-#include "Motor.h"
+#include "CRC_Motor.h"
 #include "CRC_Sensors.h"
 #include "CRC_AudioManager.h"
 #include "CRC_Lights.h"

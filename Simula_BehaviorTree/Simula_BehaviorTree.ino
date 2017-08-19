@@ -11,11 +11,11 @@
 #include "CRC_Hardware.h"
 #include "CRC_Sensors.h"
 #include "BehaviorTree.h"
-#include "PingDistance.h"
-#include "IR_BinaryDistance.h"
-#include "IR_AnalogDistance.h"
-#include "DistanceSensor.h"
-#include "Motor.h"
+#include "CRC_PingDistance.h"
+#include "CRC_IR_BinaryDistance.h"
+#include "CRC_IR_AnalogDistance.h"
+#include "CRC_DistanceSensor.h"
+#include "CRC_Motor.h"
 #include <SPI.h>
 #include <SD.h>
 #include <Wire.h>
@@ -34,9 +34,9 @@ struct TREE_STATE treeState;
 Sensors sensors = Sensors();
 CRC_HardwareClass hardware;
 CRC_SimulationClass simulation;
-Motor motorLeft(hardware.enc1A, hardware.enc1B, hardware.mtr1Enable, hardware.mtr1In1, hardware.mtr1In2);
-Motor motorRight(hardware.enc2A, hardware.enc2B, hardware.mtr2Enable, hardware.mtr2In1, hardware.mtr2In2);
-Motors motors;
+CRC_Motor motorLeft(hardware.enc1A, hardware.enc1B, hardware.mtr1Enable, hardware.mtr1In1, hardware.mtr1In2);
+CRC_Motor motorRight(hardware.enc2A, hardware.enc2B, hardware.mtr2Enable, hardware.mtr2In1, hardware.mtr2In2);
+CRC_Motors motors;
 CRC_LightsClass crcLights(hardware.i2cPca9635Left, hardware.i2cPca9635Right);
 CRC_AudioManagerClass crcAudio;
 
