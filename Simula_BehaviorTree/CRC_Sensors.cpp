@@ -87,7 +87,7 @@ boolean CRC_Sensors::irReadingUpdated() {
 	{
 		Serial.println(F("Long loop, forcing sensor read."));
 		return false;
-		//CRC_Logger.logF(CRC_Logger.LOG_TRACE, F("Forced IR Read: %ul"), diff);
+		//crcLogger.logF(crcLogger.LOG_TRACE, F("Forced IR Read: %ul"), diff);
 	}
 	return false;
 }

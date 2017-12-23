@@ -16,6 +16,9 @@
 #include "CRC_IR_AnalogDistance.h"
 #include "CRC_DistanceSensor.h"
 #include "CRC_Motor.h"
+#include "CRC_Logger.h"
+#include "CRC_ConfigurationManager.h"
+#include "CRC_ZigbeeController.h"
 #include <SPI.h>
 #include <SD.h>
 #include <Wire.h>
@@ -39,6 +42,9 @@ CRC_Motor motorRight(hardware.enc2A, hardware.enc2B, hardware.mtr2Enable, hardwa
 CRC_Motors motors;
 CRC_LightsClass crcLights(hardware.i2cPca9635Left, hardware.i2cPca9635Right);
 CRC_AudioManagerClass crcAudio;
+CRC_LoggerClass crcLogger;
+CRC_ConfigurationManagerClass crcConfigurationManager;
+CRC_ZigbeeController crcZigbeeWifi;
 
 Behavior_Tree behaviorTree;
 Behavior_Tree::Selector selector[3];
@@ -59,6 +65,7 @@ Do_Nothing doNothing(80);
 void setup() {
 	Serial.begin(115200);
 	Serial.println(F("Booting."));
+	crcLogger.addLogDestination(&Serial); // Log to Serial port
 	
 	//Visualize the tree here: https://www.gliffy.com/go/publish/10755293
 	initializeSystem();
@@ -76,7 +83,15 @@ void setup() {
 	if (hardware.sdInitialized) {
 		crcAudio.playRandomAudio(F("effects/PwrUp_"), 10, F(".mp3"));
 	}
-	Serial.println(F("Setup complete."));
+
+	char szTemp[255];
+	if(crcConfigurationManager.getConfig(F("simulaweb.host"), szTemp, sizeof(szTemp) -1)) { 
+		crcLogger.logF(crcLogger.LOG_INFO, F("Web Host Config: %s"), szTemp);
+	}
+
+	crcZigbeeWifi.init(Serial2);
+
+	crcLogger.log(crcLogger.LOG_INFO, F("Setup complete."));
 }
 
 void loop() {
@@ -92,6 +107,11 @@ void loop() {
 	
 	if (!behaviorTree.run()) {
 		Serial.println(F("All tree nodes returned false."));
+	}
+
+	if (crcZigbeeWifi.isReady()) {
+		// We can send messages up if we want to at this point.
+
 	}
 }
 

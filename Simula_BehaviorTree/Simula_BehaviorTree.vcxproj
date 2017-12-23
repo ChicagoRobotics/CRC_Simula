@@ -45,10 +45,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\..\..\..\Program Files (x86)\Arduino\libraries\SD\src;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.14\libraries\SPI\src;$(ProjectDir)..\..\..\..\Arduino\libraries\Adafruit_LSM9DS0_Library;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.14\libraries\Wire\src;$(ProjectDir)..\..\..\..\Arduino\libraries\Adafruit_Sensor-master;$(ProjectDir)..\..\..\..\Arduino\libraries\Encoder;$(ProjectDir)..\..\..\..\Arduino\libraries\StandardCplusplus-master;$(ProjectDir)..\..\..\..\Arduino\libraries\SD\src;$(ProjectDir)..\..\..\..\Arduino\libraries\SD\src\utility;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.14\libraries\Wire\src\utility;$(ProjectDir)..\..\..\..\..\..\..\Program Files (x86)\Arduino\libraries;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.14\libraries;$(ProjectDir)..\..\..\..\Arduino\libraries;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.14\cores\arduino;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.14\variants\mega;$(ProjectDir)..\Simula_BehaviorTree;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.3-arduino2\avr\include\;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.3-arduino2\avr\include\avr\;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.3-arduino2\lib\gcc\avr\4.8.1\include;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.3-arduino2\lib\gcc\avr\4.9.2\include;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.3-arduino2\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Apps\Hardware\Arduino\libraries\SD\src;$(ProjectDir)..\..\..\arduino\libraries\Adafruit_LSM9DS0_Library;C:\Apps\Hardware\Arduino\hardware\arduino\avr\libraries\Wire\src;C:\Apps\Hardware\Arduino\hardware\arduino\avr\libraries\SPI\src;$(ProjectDir)..\..\..\arduino\libraries\Adafruit_Unified_Sensor;$(ProjectDir)..\..\..\arduino\libraries\arduino_38650;$(ProjectDir)..\..\..\arduino\libraries\StandardCplusplus-master;$(ProjectDir)..\..\..\arduino\libraries\arduino_38650\utility;C:\Apps\Hardware\Arduino\libraries\SD\src\utility;C:\Apps\Hardware\Arduino\hardware\arduino\avr\libraries\Wire\src\utility;C:\Apps\Hardware\Arduino\libraries;C:\Apps\Hardware\Arduino\hardware\arduino\avr\libraries;$(ProjectDir)..\..\..\arduino\libraries;C:\Apps\Hardware\Arduino\hardware\arduino\avr\cores\arduino;C:\Apps\Hardware\Arduino\hardware\arduino\avr\variants\mega;$(ProjectDir)..\Simula_BehaviorTree;C:\Apps\Hardware\Arduino\hardware\tools\avr\avr\include\;C:\Apps\Hardware\Arduino\hardware\tools\avr\avr\include\avr\;C:\Apps\Hardware\Arduino\hardware\tools\avr\lib\gcc\avr\4.8.1\include;C:\Apps\Hardware\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.2\include;C:\Apps\Hardware\Arduino\hardware\tools\avr\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>$(ProjectDir)__vm\.Simula_BehaviorTree.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
-      <PreprocessorDefinitions>__AVR_ATmega2560__;_VMDEBUG=1;F_CPU=16000000L;ARDUINO=10609;ARDUINO_AVR_MEGA2560;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__AVR_ATmega2560__;F_CPU=16000000L;ARDUINO=10803;ARDUINO_AVR_MEGA2560;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -69,44 +69,50 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="Simula_BehaviorTree.ino">
-      <FileType>CppCode</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="BehaviorTree.h" />
     <ClInclude Include="CRC_AudioManager.h" />
-    <ClInclude Include="CRC_Simulation.h" />
-    <ClInclude Include="DistanceSensor.h" />
+    <ClInclude Include="CRC_ConfigurationManager.h" />
+    <ClInclude Include="CRC_DistanceSensor.h" />
     <ClInclude Include="CRC_Hardware.h" />
-    <ClInclude Include="IR_AnalogDistance.h" />
-    <ClInclude Include="IR_BinaryDistance.h" />
+    <ClInclude Include="CRC_IR_AnalogDistance.h" />
+    <ClInclude Include="CRC_IR_BinaryDistance.h" />
     <ClInclude Include="CRC_Lights.h" />
-    <ClInclude Include="Motor.h" />
+    <ClInclude Include="CRC_Logger.h" />
+    <ClInclude Include="CRC_Motor.h" />
     <ClInclude Include="CRC_PCA9635.h" />
-    <ClInclude Include="PingDistance.h" />
+    <ClInclude Include="CRC_PingDistance.h" />
     <ClInclude Include="CRC_Sensors.h" />
+    <ClInclude Include="CRC_Simulation.h" />
+    <ClInclude Include="CRC_StopWatch.h" />
+    <ClInclude Include="CRC_ZigbeeController.h" />
     <ClInclude Include="__vm\.Simula_BehaviorTree.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CRC_AudioManager.cpp" />
-    <ClCompile Include="CRC_Simulation.cpp" />
-    <ClCompile Include="DistanceSensor.cpp" />
+    <ClCompile Include="CRC_ConfigurationManager.cpp" />
+    <ClCompile Include="CRC_DistanceSensor.cpp" />
     <ClCompile Include="CRC_Hardware.cpp" />
-    <ClCompile Include="IR_AnalogDistance.cpp" />
-    <ClCompile Include="IR_BinaryDistance.cpp" />
+    <ClCompile Include="CRC_IR_AnalogDistance.cpp" />
+    <ClCompile Include="CRC_IR_BinaryDistance.cpp" />
     <ClCompile Include="CRC_Lights.cpp" />
-    <ClCompile Include="Motor.cpp" />
+    <ClCompile Include="CRC_Logger.cpp" />
+    <ClCompile Include="CRC_Motor.cpp" />
     <ClCompile Include="CRC_PCA9635.cpp" />
-    <ClCompile Include="PingDistance.cpp" />
+    <ClCompile Include="CRC_PingDistance.cpp" />
     <ClCompile Include="CRC_Sensors.cpp" />
+    <ClCompile Include="CRC_Simulation.cpp" />
+    <ClCompile Include="CRC_StopWatch.cpp" />
+    <ClCompile Include="CRC_ZigbeeController.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Simula_BehaviorTree.ino" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties debug.remote.portname="" debug.local.portname="" debug.remote.portspeed="" arduino.upload.port="COM10" debug.local.portspeed="" />
+      <UserProperties debug.remote.portname="" debug.local.portname="" debug.remote.portspeed="" arduino.upload.port="COM4" debug.local.portspeed="" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
