@@ -74,6 +74,7 @@
     <ClInclude Include="CRC_ConfigurationManager.h" />
     <ClInclude Include="CRC_DistanceSensor.h" />
     <ClInclude Include="CRC_Hardware.h" />
+    <ClInclude Include="CRC_IP_Network.h" />
     <ClInclude Include="CRC_IR_AnalogDistance.h" />
     <ClInclude Include="CRC_IR_BinaryDistance.h" />
     <ClInclude Include="CRC_Lights.h" />
@@ -93,6 +94,7 @@
     <ClCompile Include="CRC_ConfigurationManager.cpp" />
     <ClCompile Include="CRC_DistanceSensor.cpp" />
     <ClCompile Include="CRC_Hardware.cpp" />
+    <ClCompile Include="CRC_IP_Network.cpp" />
     <ClCompile Include="CRC_IR_AnalogDistance.cpp" />
     <ClCompile Include="CRC_IR_BinaryDistance.cpp" />
     <ClCompile Include="CRC_Lights.cpp" />
