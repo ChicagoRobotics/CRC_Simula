@@ -8,7 +8,7 @@
 CRC_HttpClient::CRC_HttpClient(CRC_IP_Network & ipNetwork)
 	:_ipNetwork(ipNetwork)
 {
-
+	_lastSend.restart();
 }
 
 boolean CRC_HttpClient::isAvailable()
