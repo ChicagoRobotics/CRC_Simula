@@ -90,6 +90,7 @@ boolean CRC_ZigbeeController::scanForModule()
 
 boolean CRC_ZigbeeController::enterCommandMode()
 {
+	flushInboundBuffer();
 	char input[] = {0,0,0,0,0};
 
 	delay(1000); // Guard Time
@@ -110,7 +111,6 @@ void CRC_ZigbeeController::exitCommandMode()
 	_serialPort->print(F("CN"));
 	_serialPort->print(F("\r"));
 	_serialPort->readStringUntil('\r');
-
 	flushInboundBuffer();
 }
 
@@ -245,14 +245,19 @@ boolean CRC_ZigbeeController::connectToNetwork()
 		firstAttempt = true;
 
 		// Enforce the Operational Modes we want to be in
-		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Device Opt: %s"), sendCommand(F("DO 0"), true));
-		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Set Network Type: %s"), sendCommand(F("AH 2"), true));
-		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Set to DHCP: %s"), sendCommand(F("MA 0"), true));
-		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:AO Mode: %s"), sendCommand(F("AO 2"), true));
-		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:DL Broadcast: %s"), sendCommand(F("DL 255.255.255.255"), true));
+		if (enterCommandMode())
+		{
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Device Opt: %s"), sendCommand(F("DO 0"), false));
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Set Network Type: %s"), sendCommand(F("AH 2"), false));
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Set to DHCP: %s"), sendCommand(F("MA 0"), false));
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:AO Mode: %s"), sendCommand(F("AO 2"), false));
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:DL Broadcast: %s"), sendCommand(F("DL 255.255.255.255"), false));
 
-		// For some reason setting to API Mode here messes things up. For now, init in Transparent mode
-		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Set to Transparent Mode: %s"), sendCommand(F("AP 0"), true));
+			// For some reason setting to API Mode here messes things up. For now, init in Transparent mode
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Set to Transparent Mode: %s"), sendCommand(F("AP 0"), false));
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Apply Config: %s"), sendCommand(F("AC"), false));
+			exitCommandMode();
+		}
 	}
 
 	while (_attemptedNetwork < 10)
