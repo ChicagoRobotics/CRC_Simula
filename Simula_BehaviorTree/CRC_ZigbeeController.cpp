@@ -430,8 +430,16 @@ boolean CRC_ZigbeeController::hasResponse()
 	while (_serialPort->available())
 	{
 		c = _serialPort->read();
-		sprintf(sz_temp, " %02X", c);
-		Serial.print(sz_temp);
+
+		if (isPrintable(c) || c == '\r' || c == '\n')
+		{
+			Serial.print((char) c);
+		}
+		else
+		{
+			sprintf(sz_temp, " %02X ", c);
+			Serial.print(sz_temp);
+		}
 	}
 	Serial.println(" ");
 	Serial.println("Finished Response");
