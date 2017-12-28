@@ -19,6 +19,7 @@
 #include "CRC_Logger.h"
 #include "CRC_ConfigurationManager.h"
 #include "CRC_ZigbeeController.h"
+#include "CRC_HttpClient.h"
 #include <SPI.h>
 #include <SD.h>
 #include <Wire.h>
@@ -45,6 +46,7 @@ CRC_AudioManagerClass crcAudio;
 CRC_LoggerClass crcLogger;
 CRC_ConfigurationManagerClass crcConfigurationManager;
 CRC_ZigbeeController crcZigbeeWifi;
+CRC_HttpClient httpClient;
 
 Behavior_Tree behaviorTree;
 Behavior_Tree::Selector selector[3];
@@ -81,16 +83,11 @@ void setup() {
 	crcAudio.setVolume(20, 20); //0 = loudest, 60 = softest ?
 	
 	if (hardware.sdInitialized) {
-		crcAudio.playRandomAudio(F("effects/PwrUp_"), 10, F(".mp3"));
-	}
-
-	char szTemp[255];
-	if(crcConfigurationManager.getConfig(F("simulaweb.host"), szTemp, sizeof(szTemp) -1)) { 
-		crcLogger.logF(crcLogger.LOG_INFO, F("Web Host Config: %s"), szTemp);
+		// crcAudio.playRandomAudio(F("effects/PwrUp_"), 10, F(".mp3"));
 	}
 
 	crcZigbeeWifi.init(Serial2);
-
+	httpClient.init(Serial2);
 	crcLogger.log(crcLogger.LOG_INFO, F("Setup complete."));
 }
 
@@ -111,7 +108,7 @@ void loop() {
 
 	if (crcZigbeeWifi.isReady()) {
 		// We can send messages up if we want to at this point.
-
+		httpClient.sendUpdate();
 	}
 }
 

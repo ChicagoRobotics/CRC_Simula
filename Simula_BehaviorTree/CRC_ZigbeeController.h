@@ -20,6 +20,7 @@ See README.md for license details
 #endif
 
 #include <HardwareSerial.h>
+#include <IPAddress.h>
 #include "CRC_StopWatch.h"
 
 
@@ -29,6 +30,7 @@ class CRC_ZigbeeController
 	 HardwareSerial * _serialPort;
 	 unsigned long _baudRate;
 	 boolean _isConnected;
+	 boolean _isTcpReady;
 
 	 boolean scanForModule();
 
@@ -41,6 +43,9 @@ class CRC_ZigbeeController
 	 int8_t _attemptedNetwork;
 	 CRC_StopWatch _lastAttempt;
 
+	 // For now, we configure to talk to a single host only, eventually, support arbitrary port/transmissions
+	 void initTcpDestination();
+	 void flushInboundBuffer();
  public:
 	void init(HardwareSerial & serialPort);
 	boolean isReady();
@@ -49,6 +54,10 @@ class CRC_ZigbeeController
 	char * sendCommand(char * command, boolean atomic=true);
 	char * getNetworkId(boolean atomic=true);
 	boolean isConnected(boolean logIsConnectedMessage, boolean atomic=true);
+
+
+
+	boolean sendIpV4Request(IPAddress &ipAddress, uint16_t port, uint8_t * content, uint16_t length);
 };
 
 #endif

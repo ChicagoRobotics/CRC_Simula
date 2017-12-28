@@ -11,6 +11,8 @@ See README.md for license details
 
 #include "CRC_Logger.h"
 
+#define FMT_MSG_LEN	255
+
 
 CRC_LoggerClass::CRC_LoggerClass()
 {
@@ -53,7 +55,7 @@ void CRC_LoggerClass::logF(uint8_t level, const char* format, ...)
 {
 	if (_currentLevel <= level && _initialized)
 	{
-		char _text[64];
+		char _text[FMT_MSG_LEN];
 		va_list argptr;
 		va_start(argptr, format);
 		vsprintf(_text, format, argptr);
@@ -67,7 +69,7 @@ void CRC_LoggerClass::logF(uint8_t level, const  __FlashStringHelper* format, ..
 {
 	if (_currentLevel <= level && _initialized)
 	{
-		char _text[64];
+		char _text[FMT_MSG_LEN];
 		va_list argptr;
 		va_start(argptr, format);
 		vsprintf_P(_text, (char *) format, argptr);

@@ -43,6 +43,7 @@ void CRC_ZigbeeController::init(HardwareSerial & serialPort)
 	_serialPort = &serialPort;
 	_baudRate = 0; // Not Initialized. We can save/restore
 	_isConnected = false;
+	_isTcpReady = false;
 	hardwareState.wireless = WI_STATUS_NOTAVAILABLE;
 
 	// Have not attempted connection
@@ -70,6 +71,17 @@ boolean CRC_ZigbeeController::scanForModule()
 			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Found device at: %lu"), _baudRate);
 			crcLogger.log(crcLogger.LOG_INFO, F("XBEE:Identifying Device Type"));
 			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Device Type: %s"), sendCommand("DD", false));
+
+
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Device Opt: %s"), sendCommand("DO 0", false));
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:SET API Mode: %s"), sendCommand("AP 0", false)); // API Mode
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:AO Mode: %s"), sendCommand("AO 2", false));
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:SET IP Mode: %s"), sendCommand("IP 1", false));
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:SET Network Type: %s"), sendCommand("AH 2", false));
+			
+			// crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Set Source Port: %s"), sendCommand("C0 80", false));
+			// crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:SET DL Dest: %s"), sendCommand("DL 10.156.143.137", false));
+			// crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Set TCP Port: %s"), sendCommand("DE 80", false));
 
 			_lastAttempt.restart();
 
@@ -120,6 +132,8 @@ char* CRC_ZigbeeController::sendCommand(char* command, boolean atomic)
 	_serialPort->print(F("AT"));
 	_serialPort->print(command);
 	_serialPort->print(F("\r"));
+	_serialPort->flush();
+
 	_serialPort->readBytesUntil('\r', _receive, bufferSize);
 
 	if (atomic) {
@@ -131,6 +145,11 @@ char* CRC_ZigbeeController::sendCommand(char* command, boolean atomic)
 boolean CRC_ZigbeeController::isReady()
 {
 	if (_isConnected || !isModuleDetected()) {
+		if (_isConnected && !_isTcpReady) {
+			initTcpDestination();
+			return _isTcpReady;
+		}
+
 		return true;
 	}
 
@@ -162,7 +181,7 @@ boolean CRC_ZigbeeController::isConnected(boolean logIsConnectedMessage, boolean
 boolean CRC_ZigbeeController::connectToNetwork()
 {
 	// Give it time to connect
-	if (_lastAttempt.elapsed() < 5000)
+	if (_lastAttempt.elapsed() < 10000)
 	{
 		return _isConnected;
 	}
@@ -172,6 +191,7 @@ boolean CRC_ZigbeeController::connectToNetwork()
 	// Just connected to via configuration
 	if (isConnected(true, true))
 	{
+		// We are connected, init the TCP Destination
 		return _isConnected;
 	}
 	
@@ -207,28 +227,23 @@ boolean CRC_ZigbeeController::connectToNetwork()
 			enterCommandMode();
 
 			// Configure SSID
-			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Setting SSID: %s"), _receive);
 			sprintf_P(temp, (char *) F("ID %s"), _receive);
-			sendCommand(temp, false);
+			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Setting SSID: %s - %s"), temp, sendCommand(temp, false));
 
 			// Configure Encryption Mode
 			sprintf_P(temp, (char *) F("wifi.mode.%d"), _attemptedNetwork);
 			if (crcConfigurationManager.getConfig(temp, _receive, sizeof(_receive)))
 			{
-				crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Setting Mode: %s"), _receive);
-
 				sprintf_P(temp, (char *) F("EE %s"), _receive);
-				sendCommand(temp, false);
+				crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Setting Mode: %s - %s"), temp, sendCommand(temp, false));
 			}
 
 			// Configure PSK Mode
 			sprintf_P(temp, (char *) F("wifi.psk.%d"), _attemptedNetwork);
 			if (crcConfigurationManager.getConfig(temp, _receive, sizeof(_receive)))
 			{
-				crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Setting PSK: %s"), _receive);
-
 				sprintf_P(temp, (char *) F("PK %s"), _receive);
-				sendCommand(temp, false);
+				crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Setting PSK: %s - %s"), temp, sendCommand(temp, false));
 			}
 
 			// Apply changes and write to persistent
@@ -262,4 +277,158 @@ boolean CRC_ZigbeeController::connectToNetwork()
 char * CRC_ZigbeeController::getNetworkId(boolean atomic)
 {
 	return sendCommand("ID", atomic);
+}
+
+void CRC_ZigbeeController::initTcpDestination()
+{
+	if (_isTcpReady) {
+		return;
+	}
+
+	// Attemps DNS Lookup
+	
+	crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:DNS: %s"), sendCommand("NS", true));
+	crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:IP: %s"), sendCommand("LA simulaweb-dev.chicagorobotics.net", true));
+
+	// TODO, we need to switch to DHCP
+
+	/**
+		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:API Mode: %s"), sendCommand("AP", true));
+		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:IP Mode: %s"), sendCommand("IP", true));
+		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:IP Addr: %s"), sendCommand("MY", true));
+		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Dest IP: %s"), sendCommand("DL", true));
+		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Dest Port: %s"), sendCommand("DE", true));
+		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:SRC Port: %s"), sendCommand("C0", true));
+		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:AO Mode: %s"), sendCommand("AO", true));
+	**/
+
+		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Device Opt: %s"), sendCommand("DO", true));
+		crcLogger.logF(crcLogger.LOG_INFO, F("Switch to API Mode: %s"), sendCommand("AP 1", true));
+
+		char* data = "GET / HTTP/1.1\r\n\r\n";
+		// uint32_t ipAddr = 0x0a9c8f89; // 10.156.143.137;
+		IPAddress ipAddr;
+		ipAddr.fromString("10.156.143.137");
+		sendIpV4Request(ipAddr, 80, (uint8_t *) data, strlen(data));
+		
+		_isTcpReady = true;
+		return;
+
+
+	/** TODO, use DHCP 
+	if (crcConfigurationManager.getConfig(F("simulaweb.host"), szCfgTemp, sizeof(szCfgTemp) - 1)) {
+		char szCfgTemp[100];
+		char szCommand[110];
+
+		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:DNS Server: %s"), sendCommand("NS", true));
+		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE Lookup: %s"), szCfgTemp);
+
+		sprintf_P(szCommand, (char *) F("LA %s"), szCfgTemp);
+		
+		crcLogger.logF(crcLogger.LOG_INFO, F("CMD: %s"), szCommand);
+		char * destIp = sendCommand(szCommand, true);
+		crcLogger.logF(crcLogger.LOG_INFO, F("Destination IP: %s"), destIp);
+	}
+	**/
+
+
+	// _lastAttempt.restart();
+}
+
+/**
+* Reads and discards all inbound bytes int he buffer
+**/
+void CRC_ZigbeeController::flushInboundBuffer()
+{
+	delay(100);
+	int c;
+	char sz_temp[10];
+	Serial.println("Response Packet");
+	while (_serialPort->available())
+	{
+		c = _serialPort->read();
+		sprintf(sz_temp, " %02X", c);
+		Serial.print(sz_temp);
+	}
+	Serial.println(" ");
+	Serial.println("Finished Response");
+
+}
+
+boolean CRC_ZigbeeController::sendIpV4Request(IPAddress &ipAddress, uint16_t port, uint8_t * content, uint16_t length)
+{
+	flushInboundBuffer();
+
+	uint8_t _calcChecksum = 0x00;
+	uint16_t packetLen = length + 12;
+
+	_calcChecksum += 0x20; // IPV4 frame
+	_calcChecksum += 0x01; // Frame Id
+	_calcChecksum += ipAddress[0];
+	_calcChecksum += ipAddress[1];
+	_calcChecksum += ipAddress[2];
+	_calcChecksum += ipAddress[3];
+	_calcChecksum += ((uint8_t *)&port)[0];
+	_calcChecksum += ((uint8_t *)&port)[1]; // dst port
+	_calcChecksum += 0x01;
+
+	for (int i = 0; i < length; i++) {
+		_calcChecksum += content[i];
+	}
+
+	_calcChecksum = 0xff - _calcChecksum;
+
+
+
+	_serialPort->write((uint8_t) 0x7E);
+	_serialPort->write(&((uint8_t *)&packetLen)[1], 1); // Length MSB
+	_serialPort->write(&((uint8_t *)&packetLen)[0], 1);  // Length LSB
+
+	_serialPort->write((uint8_t)0x20); // IPV4 frame
+	_serialPort->write((uint8_t)0x01); // Frame Id
+
+	_serialPort->write(ipAddress[0]); // 4 bytes, ip address
+	_serialPort->write(ipAddress[1]);
+	_serialPort->write(ipAddress[2]);
+	_serialPort->write(ipAddress[3]);
+
+
+	_serialPort->write(&((uint8_t *)&port)[1], 1); // dst port MSB
+	_serialPort->write(&((uint8_t *)&port)[0], 1);  // dst port LSB
+
+	_serialPort->write((uint8_t)0x00); // src port MSB
+	_serialPort->write((uint8_t)0x00);  // src port LSB
+
+	// _serialPort->write(&((uint8_t *)&port)[1], 1); // src port MSB
+	// _serialPort->write(&((uint8_t *)&port)[0], 1);  // src port LSB
+
+	_serialPort->write((uint8_t)0x01); // Protocol (0-udp, 1-tcp)
+	_serialPort->write((uint8_t)0x00); // Options (Leave socket open)
+
+	_serialPort->write(content, length);
+	_serialPort->write(_calcChecksum);
+	_serialPort->flush();
+
+
+	crcLogger.logF(crcLogger.LOG_INFO, F("Sent message IP: %d.%d.%d.%d"), ipAddress[0], ipAddress[1] , ipAddress[2], ipAddress[3]);
+	crcLogger.logF(crcLogger.LOG_INFO, F("Sent message Port: %d.%d"), ((uint8_t *)&port)[1], ((uint8_t *)&port)[0]);
+	crcLogger.logF(crcLogger.LOG_INFO, F("Sent message with Len (MSB): %02X"), ((uint8_t *)&packetLen)[1]);
+	crcLogger.logF(crcLogger.LOG_INFO, F("Sent message with Len (LSB): %02X"), ((uint8_t *)&packetLen)[0]);
+	crcLogger.logF(crcLogger.LOG_INFO, F("Sent message with Checksum: %02X"), _calcChecksum);
+
+
+	delay(5000);
+	int c;
+	char sz_temp[10];
+	Serial.println("Response Packet");
+	while (_serialPort->available())
+	{
+		c = _serialPort->read();
+		sprintf(sz_temp, " %02X", c);
+		Serial.print(sz_temp);
+	}
+	Serial.println(" ");
+	Serial.println("Finished Response");
+
+	return true;
 }

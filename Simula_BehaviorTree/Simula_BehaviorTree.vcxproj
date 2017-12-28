@@ -85,6 +85,7 @@
     <ClInclude Include="CRC_Simulation.h" />
     <ClInclude Include="CRC_StopWatch.h" />
     <ClInclude Include="CRC_ZigbeeController.h" />
+    <ClInclude Include="CRC_HttpClient.h" />
     <ClInclude Include="__vm\.Simula_BehaviorTree.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
@@ -103,6 +104,7 @@
     <ClCompile Include="CRC_Simulation.cpp" />
     <ClCompile Include="CRC_StopWatch.cpp" />
     <ClCompile Include="CRC_ZigbeeController.cpp" />
+    <ClCompile Include="CRC_HttpClient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Simula_BehaviorTree.ino" />
