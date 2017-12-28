@@ -19,11 +19,17 @@ protected:
 	CRC_IP_Network & _ipNetwork;
 	CRC_StopWatch _lastSend;
 
+	IPAddress _simulaWebIp;
+	String _simulaWebHostName;
+	boolean _ipLookupCompleted;
 public:
 	CRC_HttpClient(CRC_IP_Network & ipNetwork);
 
 	boolean isAvailable();
-	void sendUpdate();
+
+	// This does not belong here, as its application specific code, so, move it out once we have it working. Make this generic HTTP Client that works with the IP Network
+	// Interface
+	void sendUpdate(String & robotId);
 };
 
 
