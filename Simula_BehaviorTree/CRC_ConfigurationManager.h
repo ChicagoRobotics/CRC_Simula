@@ -31,7 +31,10 @@ class CRC_ConfigurationManagerClass
 	 bool initConfig();
  public:
 	 bool getConfig(const __FlashStringHelper* cfgName, char * szValue, size_t bufferSize);
+	 bool getConfig(const __FlashStringHelper* cfgName, String & szValue);
+
 	 bool getConfig(const char* cfgName, char * szValue, size_t bufferSize);
+	 bool getConfig(const char* cfgName, String & szValue);
 
 	 uint32_t getConfigUint(const __FlashStringHelper* cfgName, uint32_t defaultValue, int base=10);
 	 

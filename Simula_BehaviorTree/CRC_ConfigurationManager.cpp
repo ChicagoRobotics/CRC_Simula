@@ -54,6 +54,34 @@ bool CRC_ConfigurationManagerClass::getConfig(const char * cfgName, char * szVal
 	return false;
 }
 
+
+bool CRC_ConfigurationManagerClass::getConfig(const char* cfgName, String & szValue)
+{
+	char szTemp[50];
+
+	if (getConfig(cfgName, szTemp, sizeof(szTemp)))
+	{
+		szValue = szTemp;
+		return true;
+	}
+
+	return false;
+}
+
+
+bool CRC_ConfigurationManagerClass::getConfig(const __FlashStringHelper * cfgName, String & szValue)
+{
+	char szTemp[50];
+
+	if (getConfig(cfgName, szTemp, sizeof(szTemp)))
+	{
+		szValue = szTemp;
+		return true;
+	}
+
+	return false;
+}
+
 bool CRC_ConfigurationManagerClass::findConfig(File & configFile, const __FlashStringHelper* cfgName)
 {
 	configFile.seek(0);
@@ -142,7 +170,7 @@ void CRC_ConfigurationManagerClass::readValue(File & configFile, char * szValue,
 	int offset = 0;
 
 	szValue[0] = 0x00;
-	szValue[1] = 0x01;
+	szValue[1] = 0x00;
 
 	while ((next = configFile.read()) >= 0 && offset < bufferSize)
 	{
