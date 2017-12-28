@@ -85,7 +85,7 @@ void setup() {
 	crcAudio.setVolume(20, 20); //0 = loudest, 60 = softest ?
 	
 	if (hardware.sdInitialized) {
-		// crcAudio.playRandomAudio(F("effects/PwrUp_"), 10, F(".mp3"));
+		crcAudio.playRandomAudio(F("effects/PwrUp_"), 10, F(".mp3"));
 	}
 
 	crcZigbeeWifi.init(Serial2);
