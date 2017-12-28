@@ -48,6 +48,7 @@ CRC_LoggerClass crcLogger;
 CRC_ConfigurationManagerClass crcConfigurationManager;
 CRC_ZigbeeController crcZigbeeWifi;
 CRC_HttpClient httpClient(crcZigbeeWifi);
+String robotId = "";
 
 Behavior_Tree behaviorTree;
 Behavior_Tree::Selector selector[3];
@@ -89,6 +90,12 @@ void setup() {
 
 	crcZigbeeWifi.init(Serial2);
 	crcLogger.log(crcLogger.LOG_INFO, F("Setup complete."));
+
+	if (!crcConfigurationManager.getConfig(F("unit.id"), robotId))
+	{
+		robotId = "";
+	}
+
 }
 
 void loop() {
@@ -108,7 +115,7 @@ void loop() {
 
 	if (httpClient.isAvailable()) {
 		// We can send messages up if we want to at this point.
-		httpClient.sendUpdate();
+		httpClient.sendUpdate(robotId);
 	}
 }
 
