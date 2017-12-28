@@ -30,6 +30,8 @@ class CRC_LoggerClass
 	 uint8_t			_totalDestinations;
 	 inline void		dispatch(char * message);
 	 inline void        dispatch(const __FlashStringHelper* message);
+
+	 char _text[255];   // Logging of formatted messages
  public:
 	 CRC_LoggerClass();
 

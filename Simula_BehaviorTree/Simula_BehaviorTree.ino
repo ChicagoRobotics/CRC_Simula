@@ -4,6 +4,7 @@
  Author:	jlaing
 */
 
+#include "CRC_IP_Network.h"
 #include "CRC_Simulation.h"
 #include "CRC_AudioManager.h"
 #include "CRC_PCA9635.h"
@@ -46,7 +47,7 @@ CRC_AudioManagerClass crcAudio;
 CRC_LoggerClass crcLogger;
 CRC_ConfigurationManagerClass crcConfigurationManager;
 CRC_ZigbeeController crcZigbeeWifi;
-CRC_HttpClient httpClient;
+CRC_HttpClient httpClient(crcZigbeeWifi);
 
 Behavior_Tree behaviorTree;
 Behavior_Tree::Selector selector[3];
@@ -87,7 +88,6 @@ void setup() {
 	}
 
 	crcZigbeeWifi.init(Serial2);
-	httpClient.init(Serial2);
 	crcLogger.log(crcLogger.LOG_INFO, F("Setup complete."));
 }
 
@@ -106,7 +106,7 @@ void loop() {
 		Serial.println(F("All tree nodes returned false."));
 	}
 
-	if (crcZigbeeWifi.isReady()) {
+	if (httpClient.isAvailable()) {
 		// We can send messages up if we want to at this point.
 		httpClient.sendUpdate();
 	}

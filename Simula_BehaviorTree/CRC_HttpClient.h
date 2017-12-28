@@ -11,17 +11,18 @@
 
 #include <HardwareSerial.h>
 #include "CRC_StopWatch.h"
+#include "CRC_IP_Network.h"
 
 class CRC_HttpClient
 {
 protected:
-	HardwareSerial * _serialPort;
+	CRC_IP_Network & _ipNetwork;
 	CRC_StopWatch _lastSend;
 
 public:
-	void init(HardwareSerial & serialPort);
+	CRC_HttpClient(CRC_IP_Network & ipNetwork);
 
-
+	boolean isAvailable();
 	void sendUpdate();
 };
 
