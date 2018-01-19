@@ -15,3 +15,8 @@ with the CRC_Simula_Library from within the [Arduino IDE](https://www.arduino.cc
   
   ## Tree Visualization
   The current state of the behavior tree can be found here: https://www.gliffy.com/go/publish/10755293
+  
+  This behavior tree approach drafts heavily from the work of "Prestokeys".  The fine work of prestokeys can be found here:
+  
+  http://www.cplusplus.com/forum/general/141582/
+  
