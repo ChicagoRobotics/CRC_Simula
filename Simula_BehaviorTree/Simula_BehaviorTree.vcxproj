@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -14,18 +14,19 @@
     <ProjectGuid>{C5F80730-F44F-4478-BDAE-6634EFC2CA88}</ProjectGuid>
     <RootNamespace>Simula_BehaviorTree</RootNamespace>
     <ProjectName>Simula_BehaviorTree</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -45,7 +46,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\..\..\..\..\Program Files (x86)\Arduino\libraries\SD\src;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.14\libraries\SPI\src;$(ProjectDir)..\..\..\..\Arduino\libraries\Adafruit_LSM9DS0_Library;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.14\libraries\Wire\src;$(ProjectDir)..\..\..\..\Arduino\libraries\Adafruit_Sensor-master;$(ProjectDir)..\..\..\..\Arduino\libraries\Encoder;$(ProjectDir)..\..\..\..\Arduino\libraries\StandardCplusplus-master;$(ProjectDir)..\..\..\..\Arduino\libraries\SD\src;$(ProjectDir)..\..\..\..\Arduino\libraries\SD\src\utility;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.14\libraries\Wire\src\utility;$(ProjectDir)..\..\..\..\..\..\..\Program Files (x86)\Arduino\libraries;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.14\libraries;$(ProjectDir)..\..\..\..\Arduino\libraries;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.14\cores\arduino;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.14\variants\mega;$(ProjectDir)..\Simula_BehaviorTree;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.3-arduino2\avr\include\;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.3-arduino2\avr\include\avr\;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.3-arduino2\lib\gcc\avr\4.8.1\include;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.3-arduino2\lib\gcc\avr\4.9.2\include;$(ProjectDir)..\..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.3-arduino2\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\Simula_BehaviorTree;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\SD\src;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\Adafruit_LSM9DS0_Library;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.19\libraries\Wire\src;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.19\libraries\SPI\src;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\Adafruit_Sensor-master;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\Encoder;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\StandardCplusplus-master;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries\SD\src\utility;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.19\libraries\Wire\src\utility;$(ProjectDir)..\..\..\..\..\..\Program Files (x86)\Arduino\libraries;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.19\libraries;$(ProjectDir)..\..\..\..\Documents\Arduino\libraries;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.19\cores\arduino;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\hardware\avr\1.6.19\variants\mega;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2\avr\include\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2\avr\include\avr\;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2\lib\gcc\avr\4.8.1\include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2\lib\gcc\avr\4.9.2\include;$(ProjectDir)..\..\..\..\AppData\Local\arduino15\packages\arduino\tools\avr-gcc\4.9.2-atmel3.5.4-arduino2\lib\gcc\avr\4.9.3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>$(ProjectDir)__vm\.Simula_BehaviorTree.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
       <PreprocessorDefinitions>__AVR_ATmega2560__;_VMDEBUG=1;F_CPU=16000000L;ARDUINO=10609;ARDUINO_AVR_MEGA2560;ARDUINO_ARCH_AVR;__cplusplus=201103L;_VMICRO_INTELLISENSE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -76,29 +77,29 @@
   <ItemGroup>
     <ClInclude Include="BehaviorTree.h" />
     <ClInclude Include="CRC_AudioManager.h" />
+    <ClInclude Include="CRC_DistanceSensor.h" />
+    <ClInclude Include="CRC_IR_AnalogDistance.h" />
+    <ClInclude Include="CRC_IR_BinaryDistance.h" />
+    <ClInclude Include="CRC_Motor.h" />
+    <ClInclude Include="CRC_PingDistance.h" />
     <ClInclude Include="CRC_Simulation.h" />
-    <ClInclude Include="DistanceSensor.h" />
     <ClInclude Include="CRC_Hardware.h" />
-    <ClInclude Include="IR_AnalogDistance.h" />
-    <ClInclude Include="IR_BinaryDistance.h" />
     <ClInclude Include="CRC_Lights.h" />
-    <ClInclude Include="Motor.h" />
     <ClInclude Include="CRC_PCA9635.h" />
-    <ClInclude Include="PingDistance.h" />
     <ClInclude Include="CRC_Sensors.h" />
     <ClInclude Include="__vm\.Simula_BehaviorTree.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CRC_AudioManager.cpp" />
+    <ClCompile Include="CRC_DistanceSensor.cpp" />
+    <ClCompile Include="CRC_IR_AnalogDistance.cpp" />
+    <ClCompile Include="CRC_IR_BinaryDistance.cpp" />
+    <ClCompile Include="CRC_Motor.cpp" />
+    <ClCompile Include="CRC_PingDistance.cpp" />
     <ClCompile Include="CRC_Simulation.cpp" />
-    <ClCompile Include="DistanceSensor.cpp" />
     <ClCompile Include="CRC_Hardware.cpp" />
-    <ClCompile Include="IR_AnalogDistance.cpp" />
-    <ClCompile Include="IR_BinaryDistance.cpp" />
     <ClCompile Include="CRC_Lights.cpp" />
-    <ClCompile Include="Motor.cpp" />
     <ClCompile Include="CRC_PCA9635.cpp" />
-    <ClCompile Include="PingDistance.cpp" />
     <ClCompile Include="CRC_Sensors.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
@@ -106,7 +107,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties debug.remote.portname="" debug.local.portname="" debug.remote.portspeed="" arduino.upload.port="COM10" debug.local.portspeed="" />
+      <UserProperties debug.remote.portname="" debug.local.portname="" debug.remote.portspeed="" arduino.upload.port="COM37" debug.local.portspeed="" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>
