@@ -31,7 +31,7 @@ File file;
 struct HARDWARE_STATE hardwareState;
 struct TREE_STATE treeState;
 
-CRC_Sensors sensors = CRC_Sensors();
+CRC_Sensors sensors;
 CRC_HardwareClass hardware;
 CRC_SimulationClass simulation;
 CRC_Motor motorLeft(hardware.enc1A, hardware.enc1B, hardware.mtr1Enable, hardware.mtr1In1, hardware.mtr1In2);
@@ -70,8 +70,8 @@ void setup() {
 	crcLights.setRandomColor();
 	crcLights.showRunwayWithDelay();
 	//MP3 Player & Amplifier
-	crcAudio.setAmpGain(2); //0 = low, 3 = high
-	crcAudio.setVolume(20, 20); //0 = loudest, 60 = softest ?
+	crcAudio.setAmpGain(1); //0 = low, 3 = high
+	crcAudio.setVolume(50, 50); //0 = loudest, 60 = softest ?
 	
 	if (hardware.sdInitialized) {
 		crcAudio.playRandomAudio(F("effects/PwrUp_"), 10, F(".mp3"));
