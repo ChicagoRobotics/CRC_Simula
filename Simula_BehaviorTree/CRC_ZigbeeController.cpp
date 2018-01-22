@@ -17,7 +17,6 @@ See README.md for license details
 
 #include "CRC_ZigbeeController.h"
 #include "CRC_Logger.h"
-
 #include "CRC_ConfigurationManager.h"
 #include "CRC_Hardware.h"
 
@@ -199,7 +198,9 @@ boolean CRC_ZigbeeController::isConnected(boolean logIsConnectedMessage, boolean
 	
 	crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:AI Status: %s"), status);
 	if (strcmp_P(status, (char *)F("1")) == 0		// Wi-Fi transceiver initialization in progress
-		    || strcmp_P(status, (char *)F("2")) == 0	// Wi-Fi transceiver initialized, but not yet scanning for access point.			|| strcmp_P(status, (char *)F("41")) == 0	// Device joined a network and is waiting for IP configuration to complete/DHCP			|| strcmp_P(status, (char *)F("42")) == 0	// Device is joined, IP is configured, and listening sockets are being set up.
+		    || strcmp_P(status, (char *)F("2")) == 0	// Wi-Fi transceiver initialized, but not yet scanning for access point.
+			|| strcmp_P(status, (char *)F("41")) == 0	// Device joined a network and is waiting for IP configuration to complete/DHCP
+			|| strcmp_P(status, (char *)F("42")) == 0	// Device is joined, IP is configured, and listening sockets are being set up.
 		)
 	{
 		// Give it more time, it it attempting to join with current settings
