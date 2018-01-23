@@ -57,10 +57,10 @@ void CRC_HttpClient::sendUpdate(String & robotId)
 	}
 
 	char szPostData[50];
-	sprintf_P(szPostData, (char *) F("ID=%s&S1=%d.0"), robotId.c_str(), random(10, 100)); // TODO, get sensor readings using sensors
+	sprintf_P(szPostData, (char *) F("{ID: \"%s\", S1: \"%d.0\"}"), robotId.c_str(), random(10, 100)); // TODO, get sensor readings using sensors
 
 	char szTemp[255];
-	sprintf_P(szTemp, (char *) F("POST /api/message HTTP/1.1\r\nHost: %s\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: %d\r\n\r\n%s\r\n"), _simulaWebHostName.c_str(), strlen(szPostData), szPostData);
+	sprintf_P(szTemp, (char *) F("POST /api/robotevent HTTP/1.1\r\nHost: %s\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: %d\r\n\r\n%s\r\n"), _simulaWebHostName.c_str(), strlen(szPostData), szPostData);
 
 	crcLogger.logF(crcLogger.LOG_TRACE, F("SEND: %s"), szTemp);
 	_ipNetwork.sendTcpRequest(_simulaWebIp, 80, (uint8_t * )szTemp, strlen(szTemp));
