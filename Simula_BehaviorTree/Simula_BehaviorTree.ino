@@ -81,8 +81,8 @@ void setup() {
 	crcLights.setRandomColor();
 	crcLights.showRunwayWithDelay();
 	//MP3 Player & Amplifier
-	crcAudio.setAmpGain(2); //0 = low, 3 = high
-	crcAudio.setVolume(20, 20); //0 = loudest, 60 = softest ?
+	crcAudio.setAmpGain(3); //0 = low, 3 = high
+	crcAudio.setVolume(40, 40); //0 = loudest, 60 = softest ?
 	
 	if (hardware.sdInitialized) {
 		crcAudio.playRandomAudio(F("effects/PwrUp_"), 10, F(".mp3"));
