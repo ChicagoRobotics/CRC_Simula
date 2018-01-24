@@ -36,7 +36,7 @@ File file;
 struct HARDWARE_STATE hardwareState;
 struct TREE_STATE treeState;
 
-CRC_Sensors sensors = CRC_Sensors();
+CRC_Sensors sensors;
 CRC_HardwareClass hardware;
 CRC_SimulationClass simulation;
 CRC_Motor motorLeft(hardware.enc1A, hardware.enc1B, hardware.mtr1Enable, hardware.mtr1In1, hardware.mtr1In2);
@@ -68,8 +68,8 @@ Do_Nothing doNothing(80);
 
 void setup() {
 	Serial.begin(115200);
-	Serial.println(F("Booting."));
 	crcLogger.addLogDestination(&Serial); // Log to Serial port
+	crcLogger.log(crcLogger.LOG_INFO, F("Booting Simula."));
 	
 	//Visualize the tree here: https://www.gliffy.com/go/publish/10755293
 	initializeSystem();
@@ -84,10 +84,6 @@ void setup() {
 	crcAudio.setAmpGain(3); //0 = low, 3 = high
 	crcAudio.setVolume(40, 40); //0 = loudest, 60 = softest ?
 	
-	if (hardware.sdInitialized) {
-		crcAudio.playRandomAudio(F("effects/PwrUp_"), 10, F(".mp3"));
-	}
-
 	crcZigbeeWifi.init(Serial2);
 	crcLogger.log(crcLogger.LOG_INFO, F("Setup complete."));
 
@@ -96,6 +92,9 @@ void setup() {
 		robotId = "";
 	}
 
+	if (hardware.sdInitialized) {
+		crcAudio.playRandomAudio(F("effects/PwrUp_"), 10, F(".mp3"));
+	}
 }
 
 void loop() {
@@ -103,14 +102,14 @@ void loop() {
 	simulation.tick();
 	if (treeState.treeActive)
 	{
-		sensors.lsm.read();
+		sensors.imu.read();
 		if (!sensors.irReadingUpdated()) {
 			sensors.readIR();
 		}
 	}
 	
 	if (!behaviorTree.run()) {
-		Serial.println(F("All tree nodes returned false."));
+		crcLogger.log(crcLogger.LOG_INFO, F("All tree nodes returned false."));
 	}
 
 	if (httpClient.isAvailable()) {
@@ -121,32 +120,31 @@ void loop() {
 
 void initializeSystem() {
 	sensors.init();
-	Serial.println(F("LSM instantiated."));
+	crcLogger.log(crcLogger.LOG_INFO, F("IMU initialized."));
 	hardware.init();
-	Serial.println(F("Hardware initialized."));
+	crcLogger.log(crcLogger.LOG_INFO, F("Hardware initialized."));
 	crcLights.init();
-	Serial.println(F("Lights initialized."));
+	crcLogger.log(crcLogger.LOG_INFO, F("Lights initialized."));
 
 	if (crcAudio.init()) {
 		hardwareState.audioPlayer = true;
-		Serial.println(F("Audio initialized."));
+		crcLogger.log(crcLogger.LOG_INFO, F("Audio initialized."));
 	}
 	else {
-		Serial.println(F("Audio chip not detected."));
+		crcLogger.log(crcLogger.LOG_ERROR, F("Audio chip not detected."));
 	}
-	if (!sensors.lsm.begin())
+	if (!sensors.imu.begin())
 	{
-		Serial.println(F("Oops ... unable to initialize the LSM9DS0. Check your wiring!"));
+		crcLogger.log(crcLogger.LOG_ERROR, F("Unable to detect IMU."));
 	}
 	else
 	{
-		Serial.println(F("Setting IMU attributes."));
 		// 1.) Set the accelerometer range
-		sensors.lsm.setupAccel(sensors.lsm.LSM9DS0_ACCELRANGE_2G);
+		sensors.imu.setupAccel(sensors.imu.LSM9DS0_ACCELRANGE_2G);
 		// 2.) Set the magnetometer sensitivity
-		sensors.lsm.setupMag(sensors.lsm.LSM9DS0_MAGGAIN_2GAUSS);
+		sensors.imu.setupMag(sensors.imu.LSM9DS0_MAGGAIN_2GAUSS);
 		// 3.) Setup the gyroscope
-		sensors.lsm.setupGyro(sensors.lsm.LSM9DS0_GYROSCALE_245DPS);
+		sensors.imu.setupGyro(sensors.imu.LSM9DS0_GYROSCALE_245DPS);
 		Serial.println(F("IMU configured."));
 	}
 
@@ -155,12 +153,12 @@ void initializeSystem() {
 	motors.initialize(&motorLeft, &motorRight);
 
 	if (!SD.begin(hardware.sdcard_cs)) {
-		Serial.println(F("SD card init failure."));
+		crcLogger.log(crcLogger.LOG_ERROR, F("SD card not detected."));
 		hardware.sdInitialized = false;
 	}
 	else
 	{
-		Serial.println(F("SD card initialized."));
+		crcLogger.log(crcLogger.LOG_INFO, F("SD card initialized."));
 		hardware.sdInitialized = true;
 	}
 }

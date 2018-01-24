@@ -16,7 +16,7 @@ See README.md for license details
 #include "CRC_Hardware.h"
 
 void CRC_Sensors::init() {
-	lsm = Adafruit_LSM9DS0();
+	imu = Adafruit_LSM9DS0();
 }
 
 void CRC_Sensors::activate() {

@@ -29,7 +29,7 @@ public:
 	void deactivate();
 	void readIR();
 	boolean irReadingUpdated();
-	Adafruit_LSM9DS0 lsm;
+	Adafruit_LSM9DS0 imu;
 
 	//Distance sensors
 	boolean irLeftCliff;		// Left cliff sensor reading
