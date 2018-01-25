@@ -207,7 +207,7 @@ bool CRC_ConfigurationManagerClass::initConfig()
 		return true;
 	}
 
-	if (!hardwareState.sdCard) {
+	if (!hardwareState.sdInitialized) {
 		return false;
 	}
 

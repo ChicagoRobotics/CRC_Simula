@@ -92,7 +92,7 @@ void setup() {
 		robotId = "";
 	}
 
-	if (hardware.sdInitialized) {
+	if (hardwareState.sdInitialized) {
 		crcAudio.playRandomAudio(F("effects/PwrUp_"), 10, F(".mp3"));
 	}
 }
@@ -149,17 +149,29 @@ void initializeSystem() {
 	}
 
 	//Check battery voltage.
-	float postVoltage = hardware.readBatteryVoltage();
+	hardware.readBatteryVoltage();
+	char _voltage[20];
+	dtostrf(hardwareState.batteryVoltage, 4, 2, _voltage);
+
+	if (hardwareState.batteryLow) {
+		crcLogger.logF(crcLogger.LOG_WARN, F("Batteries low at %s volts."), _voltage);
+	}
+	else
+	{
+		crcLogger.logF(crcLogger.LOG_INFO, F("Batteries good at %s volts."), _voltage);
+	}
+
+	//Initialize the motors
 	motors.initialize(&motorLeft, &motorRight);
 
 	if (!SD.begin(hardware.sdcard_cs)) {
 		crcLogger.log(crcLogger.LOG_ERROR, F("SD card not detected."));
-		hardware.sdInitialized = false;
+		hardwareState.sdInitialized = false;
 	}
 	else
 	{
 		crcLogger.log(crcLogger.LOG_INFO, F("SD card initialized."));
-		hardware.sdInitialized = true;
+		hardwareState.sdInitialized = true;
 	}
 }
 

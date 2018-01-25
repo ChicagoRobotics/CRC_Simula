@@ -107,22 +107,21 @@ void CRC_HardwareClass::endScanStatus(unsigned long startTime)
 void CRC_HardwareClass::seedRandomGenerator() {
 	randomSeed(analogRead(A3));  //Get voltage reading from an unused pin.
 }
-float CRC_HardwareClass::readBatteryVoltage() {
-	int preVoltage = analogRead(hardware.pinBatt);
-	//Standard resistive voltage divider.
-	//In Mainboard v3.05 and up, the resistors are both 10K, 
-	//so we multiply by two.
-	//Also, 6 freshly charged Amazon black NiMH batteries
-	//measure in at 8.56 volts.
-	float postVoltage = (preVoltage * (5.00 / 1023.00) * 2);
-	//Serial.print(F("Battery voltage: "));
-	//Serial.println(postVoltage);
-	if (postVoltage < hardware.lowBatteryVoltage) {
-		Serial.print(F("Voltage below low battery setting of "));
-		Serial.print(hardware.lowBatteryVoltage);
-		Serial.println(F(" volts."));
+void CRC_HardwareClass::readBatteryVoltage() {
+	unsigned long now = millis();
+	unsigned long lastCheck = 0;
+	if ((lastCheck == 0) || (now > lastCheck + battCheckIntervalMs)) {
+		int rawVoltage = analogRead(hardware.pinBatt);
+		//Standard resistive voltage divider.
+		//In Mainboard v3.05 and up, the resistors are both 10K, 
+		//so we multiply by two.
+		//Also, 6 freshly charged Amazon black NiMH batteries
+		//measure in at 8.56 volts.
+		hardwareState.batteryVoltage = (rawVoltage * (5.00 / 1023.00) * 2);
+		if (hardwareState.batteryVoltage > lowBatteryVoltage) {
+			hardwareState.batteryLow = false;
+		}
 	}
-	return postVoltage;
 }
 int CRC_HardwareClass::getRandomNumberInRange(int lowest, int highest) {
 	seedRandomGenerator();

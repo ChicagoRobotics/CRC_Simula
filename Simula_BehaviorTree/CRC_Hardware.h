@@ -24,13 +24,15 @@ struct HARDWARE_STATE {
 	uint16_t freeRam = 0;       // Free RAM in bytes
 	int8_t leftMotor = 0;       // -100 -> 100
 	int8_t rightMotor = 0;       // -100 -> 100	
-	boolean sdCard = false;      // SD Card initialized/available state
-	boolean audioPlayer = false; // Audi Player state
+	boolean sdInitialized = false;      // SD card initialized/available state
+	boolean audioPlayer = false; // Audio player state
 	boolean audioPlaying = false; // Is the audio player playing
 	uint8_t wireless = 0x00;     // Wireless Status
 	unsigned long loopLastTimeMillis = 0; // Last Time in millis
 	unsigned long loopMinTimeMillis = 0;  // Min Time in millis
 	unsigned long loopMaxTimeMillis = 0;  // Max Time in millis
+	float batteryVoltage = 0;  // Detected voltage of battery
+	boolean batteryLow = true;
 };
 extern struct HARDWARE_STATE hardwareState;
 
@@ -98,17 +100,16 @@ public:
 	const uint8_t i2cPca9635Right = 0x01;
 
 	//Battery related
-	const float lowBatteryVoltage = 6.3;
-	const int batteryCheckSeconds = 4;
+	const float lowBatteryVoltage = 6.3; // Cutoff on battery voltage, below this Simula unstable
+	const int battCheckIntervalMs = 1000;  // How often batteries are checked, in millis
 
 #endif
 	void init();
 	void startScanStatus(unsigned long startTime);
 	void endScanStatus(unsigned long startTime);
 	void seedRandomGenerator();
-	float readBatteryVoltage();
+	void readBatteryVoltage();
 	int getRandomNumberInRange(int lowest, int highest);
-	bool sdInitialized;
 private:
 	void setupPins();
 	void setupI2C();

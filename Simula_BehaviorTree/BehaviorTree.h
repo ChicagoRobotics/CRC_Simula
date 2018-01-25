@@ -150,19 +150,17 @@ private:
 	virtual bool run() override {
 		now = millis();
 		if (!nodeActive) {
-			if ((lastCheck == 0) || (now > lastCheck + interval)) {
-				lastCheck = now;
-				float postVoltage = hardware.readBatteryVoltage();
-				if (postVoltage < hardware.lowBatteryVoltage) {
-					nodeActive = true;
-					Serial.print(F("Batteries low. Measurement: "));
-					Serial.println(postVoltage);
-					Serial.print(F("below threshold of: "));
-					Serial.println(hardware.lowBatteryVoltage);
-					crcAudio.playRandomAudio("effects/PwrDn_", 10, ".mp3");
-				}
+			hardware.readBatteryVoltage();
+			if (hardwareState.batteryVoltage < hardware.lowBatteryVoltage) {
+				nodeActive = true;
+				Serial.print(F("Batteries low. Measurement: "));
+				Serial.println(hardwareState.batteryVoltage);
+				Serial.print(F("below threshold of: "));
+				Serial.println(hardware.lowBatteryVoltage);
+				crcAudio.playRandomAudio("effects/PwrDn_", 10, ".mp3");
 			}
 		}
+		//TODO: add ability to reactivate when batteries are good.
 		return nodeActive;
 	}
 };
