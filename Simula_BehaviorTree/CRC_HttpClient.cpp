@@ -4,9 +4,7 @@
 
 #include "CRC_HttpClient.h"
 #include "CRC_Logger.h"
-
 #include "CRC_ConfigurationManager.h"
-
 #include "CRC_Sensors.h"
 
 CRC_HttpClient::CRC_HttpClient(CRC_IP_Network & ipNetwork)
@@ -40,7 +38,6 @@ boolean CRC_HttpClient::isAvailable()
 
 	return ipNetworkIsUp && _ipLookupCompleted;
 }
-
 
 void CRC_HttpClient::sendUpdate(String & robotId) 
 {

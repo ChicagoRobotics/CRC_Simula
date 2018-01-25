@@ -115,8 +115,8 @@ float CRC_HardwareClass::readBatteryVoltage() {
 	//Also, 6 freshly charged Amazon black NiMH batteries
 	//measure in at 8.56 volts.
 	float postVoltage = (preVoltage * (5.00 / 1023.00) * 2);
-	Serial.print(F("Battery voltage: "));
-	Serial.println(postVoltage);
+	//Serial.print(F("Battery voltage: "));
+	//Serial.println(postVoltage);
 	if (postVoltage < hardware.lowBatteryVoltage) {
 		Serial.print(F("Voltage below low battery setting of "));
 		Serial.print(hardware.lowBatteryVoltage);

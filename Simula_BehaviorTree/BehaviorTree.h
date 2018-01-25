@@ -173,7 +173,7 @@ private:
 	const int Z_Orient_Min = 15000;
 	virtual bool run() override {
 
-		if ((sensors.imu.accelData.z < Z_Orient_Min) && (!motors.active()) && (!crcAudio.isPlayingAudio())) {
+		if ((!motors.active()) && (!crcAudio.isPlayingAudio()) && (sensors.imu.accelData.z < Z_Orient_Min)) {
 			crcAudio.playRandomAudio(F("emotions/scare_"), 9, F(".mp3"));
 			//Serial.print("Z: ");
 			//Serial.println(sensors.lsm.accelData.z);

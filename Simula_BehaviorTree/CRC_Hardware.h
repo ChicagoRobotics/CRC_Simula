@@ -81,7 +81,7 @@ public:
 	const byte pinFrntIr = A8;
 	const byte pinActFrntIR = 29;
 	const byte irMinimumCM = 3;
-	const float lowBatteryVoltage = 6.3;
+	
 
 	// Ping Sensors
 	const byte pinPingEcho = 6;
@@ -96,6 +96,10 @@ public:
 
 	const uint8_t i2cPca9635Left = 0x00;
 	const uint8_t i2cPca9635Right = 0x01;
+
+	//Battery related
+	const float lowBatteryVoltage = 6.3;
+	const int batteryCheckSeconds = 4;
 
 #endif
 	void init();
