@@ -13,6 +13,8 @@
 #include "CRC_StopWatch.h"
 #include "CRC_IP_Network.h"
 
+const int postFreqMs = 1000;
+
 class CRC_HttpClient
 {
 protected:
@@ -27,8 +29,8 @@ public:
 
 	boolean isAvailable();
 
-	// This does not belong here, as its application specific code, so, move it out once we have it working. Make this generic HTTP Client that works with the IP Network
-	// Interface
+	// This does not belong here, as its application specific code, so, move it out once we have it working. 
+	//Make this generic HTTP Client that works with the IP Network Interface
 	void sendUpdate(String & robotId);
 };
 

@@ -49,7 +49,7 @@ void CRC_HttpClient::sendUpdate(String & robotId)
 	_ipNetwork.hasResponse();
 
 	// Make this configurable, global so its more obvious
-	if (_lastSend.elapsed() < 10000) {
+	if (_lastSend.elapsed() < postFreqMs) {
 		return;
 	}
 
