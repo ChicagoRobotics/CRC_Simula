@@ -16,7 +16,7 @@ See README.md for license details
 #include "CRC_Hardware.h"
 
 void CRC_Sensors::init() {
-	lsm = Adafruit_LSM9DS0();
+	imu = Adafruit_LSM9DS0();
 }
 
 void CRC_Sensors::activate() {
@@ -87,7 +87,7 @@ boolean CRC_Sensors::irReadingUpdated() {
 	{
 		Serial.println(F("Long loop, forcing sensor read."));
 		return false;
-		//CRC_Logger.logF(CRC_Logger.LOG_TRACE, F("Forced IR Read: %ul"), diff);
+		//crcLogger.logF(crcLogger.LOG_TRACE, F("Forced IR Read: %ul"), diff);
 	}
 	return false;
 }

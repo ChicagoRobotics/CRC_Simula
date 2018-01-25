@@ -70,37 +70,47 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="Simula_BehaviorTree.ino">
-      <FileType>CppCode</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="BehaviorTree.h" />
     <ClInclude Include="CRC_AudioManager.h" />
+    <ClInclude Include="CRC_ConfigurationManager.h" />
     <ClInclude Include="CRC_DistanceSensor.h" />
+    <ClInclude Include="CRC_Hardware.h" />
+    <ClInclude Include="CRC_IP_Network.h" />
     <ClInclude Include="CRC_IR_AnalogDistance.h" />
     <ClInclude Include="CRC_IR_BinaryDistance.h" />
-    <ClInclude Include="CRC_Motor.h" />
-    <ClInclude Include="CRC_PingDistance.h" />
-    <ClInclude Include="CRC_Simulation.h" />
-    <ClInclude Include="CRC_Hardware.h" />
     <ClInclude Include="CRC_Lights.h" />
+    <ClInclude Include="CRC_Logger.h" />
+    <ClInclude Include="CRC_Motor.h" />
     <ClInclude Include="CRC_PCA9635.h" />
+    <ClInclude Include="CRC_PingDistance.h" />
     <ClInclude Include="CRC_Sensors.h" />
+    <ClInclude Include="CRC_Simulation.h" />
+    <ClInclude Include="CRC_StopWatch.h" />
+    <ClInclude Include="CRC_ZigbeeController.h" />
+    <ClInclude Include="CRC_HttpClient.h" />
     <ClInclude Include="__vm\.Simula_BehaviorTree.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CRC_AudioManager.cpp" />
+    <ClCompile Include="CRC_ConfigurationManager.cpp" />
     <ClCompile Include="CRC_DistanceSensor.cpp" />
+    <ClCompile Include="CRC_Hardware.cpp" />
+    <ClCompile Include="CRC_IP_Network.cpp" />
     <ClCompile Include="CRC_IR_AnalogDistance.cpp" />
     <ClCompile Include="CRC_IR_BinaryDistance.cpp" />
-    <ClCompile Include="CRC_Motor.cpp" />
-    <ClCompile Include="CRC_PingDistance.cpp" />
-    <ClCompile Include="CRC_Simulation.cpp" />
-    <ClCompile Include="CRC_Hardware.cpp" />
     <ClCompile Include="CRC_Lights.cpp" />
+    <ClCompile Include="CRC_Logger.cpp" />
+    <ClCompile Include="CRC_Motor.cpp" />
     <ClCompile Include="CRC_PCA9635.cpp" />
+    <ClCompile Include="CRC_PingDistance.cpp" />
     <ClCompile Include="CRC_Sensors.cpp" />
+    <ClCompile Include="CRC_Simulation.cpp" />
+    <ClCompile Include="CRC_StopWatch.cpp" />
+    <ClCompile Include="CRC_ZigbeeController.cpp" />
+    <ClCompile Include="CRC_HttpClient.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Simula_BehaviorTree.ino" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
