@@ -34,7 +34,6 @@ SdFile root;
 File file;
 
 struct HARDWARE_STATE hardwareState;
-struct TREE_STATE treeState;
 
 CRC_Sensors sensors;
 CRC_HardwareClass hardware;
@@ -81,10 +80,10 @@ void setup() {
 	crcLights.setRandomColor();
 	crcLights.showRunwayWithDelay();
 	//MP3 Player & Amplifier
-	crcAudio.setAmpGain(3); //0 = low, 3 = high
-	crcAudio.setVolume(40, 40); //0 = loudest, 60 = softest ?
+	crcAudio.setAmpGain(1); //0 = low, 3 = high
+	crcAudio.setVolume(50, 50); //0 = loudest, 60 = softest ?
 	
-	crcZigbeeWifi.init(Serial2);
+	//crcZigbeeWifi.init(Serial2);
 	crcLogger.log(crcLogger.LOG_INFO, F("Setup complete."));
 
 	if (!crcConfigurationManager.getConfig(F("unit.id"), robotId))
@@ -100,7 +99,7 @@ void setup() {
 void loop() {
 	crcAudio.tick();
 	simulation.tick();
-	if (treeState.treeActive)
+	if (!buttonStop.isStopped())
 	{
 		sensors.imu.read();
 		if (!sensors.irReadingUpdated()) {
@@ -114,7 +113,7 @@ void loop() {
 
 	if (httpClient.isAvailable()) {
 		// We can send messages up if we want to at this point.
-		httpClient.sendUpdate(robotId);
+		//httpClient.sendUpdate(robotId);
 	}
 }
 

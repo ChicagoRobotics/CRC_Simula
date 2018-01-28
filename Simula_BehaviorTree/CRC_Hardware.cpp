@@ -50,7 +50,7 @@ void CRC_HardwareClass::setupPins()
 
 	// 
 	pinMode(pinButtonLED, OUTPUT);
-	pinMode(pinButton, INPUT_PULLUP);
+	pinMode(pinButtonA, INPUT_PULLUP);
 
 	// Motor Pins
 	pinMode(mtr1In1, OUTPUT);

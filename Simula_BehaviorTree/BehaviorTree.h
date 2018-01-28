@@ -8,9 +8,9 @@ Author:	jlaing
 #define _BEHAVIORTREE_h
 
 #if defined(ARDUINO) && ARDUINO >= 100
-	#include "arduino.h"
+#include "arduino.h"
 #else
-	#include "WProgram.h"
+#include "WProgram.h"
 #endif
 
 #include "CRC_Motor.h"
@@ -23,14 +23,9 @@ Author:	jlaing
 #include <initializer_list>
 #include <algorithm>
 
-struct TREE_STATE {
-	bool treeActive = false;
-};
-extern struct TREE_STATE treeState;
-
 class Behavior_Tree {  // Note:  A proper copy constructor and assignment operator should be defined, since the implicit ones use shallow copies only.
 private:
-	
+
 public:
 	class Node {  // This class represents each node in the behaviour tree.
 	public:
@@ -47,10 +42,10 @@ public:
 		template <typename CONTAINER>
 		void addChildren(const CONTAINER& newChildren) { for (Node* child : newChildren) addChild(child); }
 	protected:
-		std::vector<Node*> childrenShuffled() const { 
-			std::vector<Node*> temp = children;  
-			std::random_shuffle(temp.begin(), temp.end());  
-			return temp; 
+		std::vector<Node*> childrenShuffled() const {
+			std::vector<Node*> temp = children;
+			std::random_shuffle(temp.begin(), temp.end());
+			return temp;
 		}
 	};
 
@@ -87,58 +82,103 @@ public:
 		}
 	};
 
-	class Root : public Node {
+	class Root : public Node
+	{
 	private:
-		Node* child;
+		Node * child;
 		friend class Behavior_Tree;
 		void setChild(Node* newChild) { child = newChild; }
 		virtual bool run() override { return child->run(); }
 	};
 private:
-	Root* root;
+	Root * root;
 public:
 	Behavior_Tree() : root(new Root) {}
 	void setRootChild(Node* rootChild) const { root->setChild(rootChild); }
 	bool run() const { return root->run(); }
 };
 class Button_Stop : public Behavior_Tree::Node {
+public:
+	bool isStopped() { return _buttonStopped; }
 private:
-	bool buttonState = true;
-	int lastButtonState = HIGH;
+	bool _buttonStopped = true;
+	int _buttonState = HIGH;
+	int _lastButtonState = HIGH;
 	unsigned long debounceTime;
 	const long debounceDelay = 10;
 	virtual bool run() override {
-		int reading = digitalRead(hardware.pinButton);
-		if (reading != lastButtonState) {
+		int _reading = digitalRead(hardware.pinButtonA);
+		if (_reading != _lastButtonState) {
 			debounceTime = millis();
 		}
 
-		if ((millis() - debounceTime) > debounceDelay) {
-			if (reading != buttonState) {
-				buttonState = reading;
-				if (buttonState == HIGH) {
-					treeState.treeActive = !treeState.treeActive;
-					if (!treeState.treeActive)
-					{
-						Serial.println(F("Behavior tree off."));
-						motors.allStop();
-						sensors.deactivate();
-						simulation.showLedNone();
-						crcLights.setButtonLevel(0);
-					}
-					else {
-						Serial.println(F("Activating behavior tree."));
-						sensors.activate();
-						simulation.showLedBio();
-						delay(50);
-						//return true to allow sensors to read before next tree loop.
-						return true;
-					}
+		if (((millis() - debounceTime) > debounceDelay) && (_reading != _buttonState))
+		{
+			_buttonState = _reading;
+			if (_buttonState == HIGH) {
+				_buttonStopped = !_buttonStopped;
+				if (_buttonStopped)
+				{
+					Serial.println(F("Behavior tree off."));
+					motors.allStop();
+					sensors.deactivate();
+					simulation.showLedNone();
+					crcLights.setButtonLevel(0);
+				}
+				else {
+					Serial.println(F("Activating behavior tree."));
+					sensors.activate();
+					simulation.showLedBio();
+					delay(50);
+					//return true to allow sensors to read before next tree loop.
+					return true;
 				}
 			}
 		}
-		lastButtonState = reading;
-		return !treeState.treeActive;
+		_lastButtonState = _reading;
+		return _buttonStopped;
+	}
+};
+class Button_Stop_original : public Behavior_Tree::Node {
+public:
+	bool isStopped() { return _buttonStopped; }
+private:
+	bool _buttonStopped = true;
+	int _buttonState = HIGH;
+	int _lastButtonState = HIGH;
+	unsigned long debounceTime;
+	const long debounceDelay = 10;
+	virtual bool run() override {
+		int _reading = digitalRead(hardware.pinButtonA);
+		if (_reading != _lastButtonState) {
+			debounceTime = millis();
+		}
+
+		if (((millis() - debounceTime) > debounceDelay) && (_reading != _buttonState))
+		{
+			_buttonState = _reading;
+			if (_buttonState == HIGH) {
+				_buttonStopped = !_buttonStopped;
+				if (_buttonStopped)
+				{
+					Serial.println(F("Behavior tree off."));
+					motors.allStop();
+					sensors.deactivate();
+					simulation.showLedNone();
+					crcLights.setButtonLevel(0);
+				}
+				else {
+					Serial.println(F("Activating behavior tree."));
+					sensors.activate();
+					simulation.showLedBio();
+					delay(50);
+					//return true to allow sensors to read before next tree loop.
+					return true;
+				}
+			}
+		}
+		_lastButtonState = _reading;
+		return _buttonStopped;
 	}
 };
 class Battery_Check : public Behavior_Tree::Node {
@@ -494,10 +534,10 @@ private:
 	long duration;
 	unsigned long currentTime;
 	unsigned long nodeStartTime = 0;
-	
+
 	virtual bool run() override {
 		currentTime = millis();
-		if (!nodeActive && !simulation.actionActive){
+		if (!nodeActive && !simulation.actionActive) {
 			long randNum = random(1, 101);
 			Serial.print(F("turnRandom number: "));
 			Serial.println(randNum);
@@ -514,10 +554,10 @@ private:
 				else {
 					motors.setPower(simulation.turnSpeed, -simulation.turnSpeed);
 				}
-				
+
 			}
 		}
-		if(nodeActive && (nodeStartTime + duration < currentTime)){
+		if (nodeActive && (nodeStartTime + duration < currentTime)) {
 			Serial.println(F("turnRandom finished."));
 			simulation.actionActive = false;
 			simulation.perimeterActive = false;

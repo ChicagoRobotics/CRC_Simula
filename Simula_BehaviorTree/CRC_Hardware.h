@@ -45,7 +45,9 @@ public:
 #define _CRC_BOARD_VER_    ALPHA
 	const byte enc1A = 3;
 	const byte enc1B = 2;
-	const byte pinButton = 5;
+	const byte pinButtonA = 5;
+	const byte pinButtonB = 38;
+	const byte pinButtonC = A3;
 	const byte pinButtonLED = 13;
 	const byte enc2A = 18;
 	const byte enc2B = 19;
