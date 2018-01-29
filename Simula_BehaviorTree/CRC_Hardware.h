@@ -111,6 +111,7 @@ public:
 	void endScanStatus(unsigned long startTime);
 	void seedRandomGenerator();
 	void readBatteryVoltage();
+	void announceBatteryVoltage();
 	int getRandomNumberInRange(int lowest, int highest);
 private:
 	void setupPins();

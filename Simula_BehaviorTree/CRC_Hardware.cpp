@@ -16,6 +16,7 @@ See README.md for license details
 
 #include "CRC_Hardware.h"
 #include "CRC_Sensors.h"
+#include "CRC_Logger.h"
 
 void CRC_HardwareClass::init() {
 	seedRandomGenerator();
@@ -121,6 +122,19 @@ void CRC_HardwareClass::readBatteryVoltage() {
 		if (hardwareState.batteryVoltage > lowBatteryVoltage) {
 			hardwareState.batteryLow = false;
 		}
+	}
+}
+void CRC_HardwareClass::announceBatteryVoltage() {
+	hardware.readBatteryVoltage();
+	char _voltage[20];
+	dtostrf(hardwareState.batteryVoltage, 4, 3, _voltage);
+
+	if (hardwareState.batteryLow) {
+		crcLogger.logF(crcLogger.LOG_WARN, F("Batteries low at %s volts."), _voltage);
+	}
+	else
+	{
+		crcLogger.logF(crcLogger.LOG_INFO, F("Batteries good at %s volts."), _voltage);
 	}
 }
 int CRC_HardwareClass::getRandomNumberInRange(int lowest, int highest) {

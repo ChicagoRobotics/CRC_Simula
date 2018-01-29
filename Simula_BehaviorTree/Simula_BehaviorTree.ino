@@ -50,9 +50,9 @@ CRC_HttpClient httpClient(crcZigbeeWifi);
 String robotId = "";
 
 Behavior_Tree behaviorTree;
-Behavior_Tree::Selector selector[3];
+Behavior_Tree::Selector selector[2];
 Behavior_Tree::RandomSelector randomSort[1];
-Button_Stop buttonStop;
+Button_Gate buttonGateA(hardware.pinButtonA, "Button A");
 Battery_Check batteryCheck;
 Cliff_Center cliffCenter;
 Cliff_Left cliffLeft;
@@ -72,9 +72,10 @@ void setup() {
 	
 	//Visualize the tree here: https://www.gliffy.com/go/publish/10755293
 	initializeSystem();
-	behaviorTree.setRootChild(&selector[0]);
-	selector[0].addChildren({ &buttonStop, &batteryCheck, &orientationCheck, &selector[1], &randomSort[0] });
-	selector[1].addChildren({ &perimeterCenter, &perimeterLeft, &perimeterRight, &cliffCenter, &cliffLeft, &cliffRight });
+	//behaviorTree.setRootChild(&selector[0]);
+	behaviorTree.setRootChild(&buttonGateA);
+	buttonGateA.addChildren({ &batteryCheck, &orientationCheck, &selector[0], &randomSort[0] });
+	selector[0].addChildren({ &perimeterCenter, &perimeterLeft, &perimeterRight, &cliffCenter, &cliffLeft, &cliffRight });
 	randomSort[0].addChildren({ &forwardRandom, &doNothing, &turnLeft, &turnRight });
 
 	crcLights.setRandomColor();
@@ -99,7 +100,7 @@ void setup() {
 void loop() {
 	crcAudio.tick();
 	simulation.tick();
-	if (!buttonStop.isStopped())
+	if (!buttonGateA.isStopped())
 	{
 		sensors.imu.read();
 		if (!sensors.irReadingUpdated()) {
@@ -148,17 +149,8 @@ void initializeSystem() {
 	}
 
 	//Check battery voltage.
-	hardware.readBatteryVoltage();
-	char _voltage[20];
-	dtostrf(hardwareState.batteryVoltage, 4, 2, _voltage);
-
-	if (hardwareState.batteryLow) {
-		crcLogger.logF(crcLogger.LOG_WARN, F("Batteries low at %s volts."), _voltage);
-	}
-	else
-	{
-		crcLogger.logF(crcLogger.LOG_INFO, F("Batteries good at %s volts."), _voltage);
-	}
+	hardware.announceBatteryVoltage();
+	
 
 	//Initialize the motors
 	motors.initialize(&motorLeft, &motorRight);

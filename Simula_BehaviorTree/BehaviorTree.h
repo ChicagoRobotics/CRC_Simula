@@ -17,6 +17,7 @@ Author:	jlaing
 #include "CRC_Sensors.h"
 #include "CRC_AudioManager.h"
 #include "CRC_Lights.h"
+#include "CRC_Logger.h"
 #include <StandardCplusplus.h>
 #include <list>
 #include <vector>
@@ -97,17 +98,20 @@ public:
 	void setRootChild(Node* rootChild) const { root->setChild(rootChild); }
 	bool run() const { return root->run(); }
 };
-class Button_Stop : public Behavior_Tree::Node {
+class Button_Gate : public Behavior_Tree::Selector {
 public:
-	bool isStopped() { return _buttonStopped; }
+	bool isStopped() { return _gateClosed; }
+	Button_Gate(int buttonNum, char* name) : _buttonNum(buttonNum), _name(name) {}
 private:
-	bool _buttonStopped = true;
+	char* _name;
+	bool _gateClosed = true;
 	int _buttonState = HIGH;
 	int _lastButtonState = HIGH;
+	int _buttonNum;
 	unsigned long debounceTime;
 	const long debounceDelay = 10;
 	virtual bool run() override {
-		int _reading = digitalRead(hardware.pinButtonA);
+		int _reading = digitalRead(_buttonNum);
 		if (_reading != _lastButtonState) {
 			debounceTime = millis();
 		}
@@ -116,27 +120,32 @@ private:
 		{
 			_buttonState = _reading;
 			if (_buttonState == HIGH) {
-				_buttonStopped = !_buttonStopped;
-				if (_buttonStopped)
+				_gateClosed = !_gateClosed;
+				if (_gateClosed)
 				{
-					Serial.println(F("Behavior tree off."));
+					crcLogger.logF(crcLogger.LOG_WARN, F("Closed button gate %s."), _name);
 					motors.allStop();
 					sensors.deactivate();
 					simulation.showLedNone();
 					crcLights.setButtonLevel(0);
 				}
 				else {
-					Serial.println(F("Activating behavior tree."));
+					crcLogger.logF(crcLogger.LOG_WARN, F("Opened button gate %s."), _name);
 					sensors.activate();
 					simulation.showLedBio();
-					delay(50);
+					//delay(50);
 					//return true to allow sensors to read before next tree loop.
 					return true;
 				}
 			}
 		}
 		_lastButtonState = _reading;
-		return _buttonStopped;
+		if (!_gateClosed) {
+			for (Node* child : getChildren()) {
+				child->run();
+			}
+			return true;
+		}
 	}
 };
 class Button_Stop_original : public Behavior_Tree::Node {
@@ -186,17 +195,14 @@ private:
 	bool nodeActive = false;
 	unsigned long now;
 	unsigned long lastCheck = 0;
-	int interval = 10000;
+	int interval = 1000;
 	virtual bool run() override {
 		now = millis();
 		if (!nodeActive) {
 			hardware.readBatteryVoltage();
 			if (hardwareState.batteryVoltage < hardware.lowBatteryVoltage) {
+				hardware.announceBatteryVoltage();
 				nodeActive = true;
-				Serial.print(F("Batteries low. Measurement: "));
-				Serial.println(hardwareState.batteryVoltage);
-				Serial.print(F("below threshold of: "));
-				Serial.println(hardware.lowBatteryVoltage);
 				crcAudio.playRandomAudio("effects/PwrDn_", 10, ".mp3");
 			}
 		}
@@ -204,7 +210,6 @@ private:
 		return nodeActive;
 	}
 };
-
 class Orientation_Check : public Behavior_Tree::Node {
 private:
 	bool nodeActive = false;
@@ -234,7 +239,6 @@ private:
 		Serial.print("Temp: "); Serial.print((int)sensors.lsm.temperature);    Serial.println(" ");*/
 	}
 };
-
 class Cliff_Center : public Behavior_Tree::Node {
 private:
 	bool nodeActive = false;
@@ -338,7 +342,6 @@ private:
 		return nodeActive;
 	}
 };
-
 class Perimeter_Center : public Behavior_Tree::Node {
 private:
 	bool nodeActive = false;
@@ -446,7 +449,6 @@ private:
 		return nodeActive;
 	}
 };
-
 class Do_Nothing : public Behavior_Tree::Node {
 	//This function is checked every checkInterval to see if it should run.
 	//The interval is randomized, as is the duration of the time doing nothing.
@@ -482,7 +484,6 @@ private:
 		return nodeActive;
 	}
 };
-
 class Forward_Random : public Behavior_Tree::Node {
 	//This function is checked every checkInterval to see if it should run.
 	//The interval is randomized, as is the duration of the time doing nothing.
@@ -520,7 +521,6 @@ private:
 		return nodeActive;
 	}
 };
-
 class Turn_Random : public Behavior_Tree::Node {
 	//This function is checked every checkInterval to see if it should run.
 	//The interval is randomized, as is the duration of the time doing nothing.
@@ -568,9 +568,6 @@ private:
 		return nodeActive;
 	}
 };
-
-
-
 
 #endif
 
