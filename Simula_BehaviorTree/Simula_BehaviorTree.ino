@@ -1,6 +1,6 @@
 /*
  Name:		Simula_BehaviorTree.ino
- Created:	6/11/2016 2:05:02 PM
+ Created:	6/11/2018 2:05:02 PM
  Author:	jlaing
 */
 
@@ -35,13 +35,13 @@ File file;
 
 struct HARDWARE_STATE hardwareState;
 
-CRC_Sensors sensors;
-CRC_HardwareClass hardware;
+CRC_Sensors crcSensors;
+CRC_HardwareClass crcHardware;
 CRC_SimulationClass simulation;
-CRC_Motor motorLeft(hardware.enc1A, hardware.enc1B, hardware.mtr1Enable, hardware.mtr1In1, hardware.mtr1In2);
-CRC_Motor motorRight(hardware.enc2A, hardware.enc2B, hardware.mtr2Enable, hardware.mtr2In1, hardware.mtr2In2);
+CRC_Motor motorLeft(crcHardware.enc1A, crcHardware.enc1B, crcHardware.mtr1Enable, crcHardware.mtr1In1, crcHardware.mtr1In2);
+CRC_Motor motorRight(crcHardware.enc2A, crcHardware.enc2B, crcHardware.mtr2Enable, crcHardware.mtr2In1, crcHardware.mtr2In2);
 CRC_Motors motors;
-CRC_LightsClass crcLights(hardware.i2cPca9635Left, hardware.i2cPca9635Right);
+CRC_LightsClass crcLights(crcHardware.i2cPca9635Left, crcHardware.i2cPca9635Right);
 CRC_AudioManagerClass crcAudio;
 CRC_LoggerClass crcLogger;
 CRC_ConfigurationManagerClass crcConfigurationManager;
@@ -52,7 +52,7 @@ String robotId = "";
 Behavior_Tree behaviorTree;
 Behavior_Tree::Selector selector[2];
 Behavior_Tree::RandomSelector randomSort[1];
-Button_Gate buttonGateA(hardware.pinButtonA, "Button A");
+Button_Gate buttonGateA(crcHardware.pinButtonA, "Button A");
 Battery_Check batteryCheck;
 Cliff_Center cliffCenter;
 Cliff_Left cliffLeft;
@@ -68,18 +68,22 @@ Do_Nothing doNothing(80);
 void setup() {
 	Serial.begin(115200);
 	crcLogger.addLogDestination(&Serial); // Log to Serial port
+	crcLogger.setLevel(crcLogger.LOG_INFO);  //Set logging verbosity.
 	crcLogger.log(crcLogger.LOG_INFO, F("Booting Simula."));
-	
-	//Visualize the tree here: https://www.gliffy.com/go/publish/10755293
+
+	//Lots of setup work here
 	initializeSystem();
-	//behaviorTree.setRootChild(&selector[0]);
+	
+	//Behavior Tree construction. Visualize: https://www.gliffy.com/go/publish/10755293
 	behaviorTree.setRootChild(&buttonGateA);
 	buttonGateA.addChildren({ &batteryCheck, &orientationCheck, &selector[0], &randomSort[0] });
 	selector[0].addChildren({ &perimeterCenter, &perimeterLeft, &perimeterRight, &cliffCenter, &cliffLeft, &cliffRight });
 	randomSort[0].addChildren({ &forwardRandom, &doNothing, &turnLeft, &turnRight });
 
+	//Lighting display
 	crcLights.setRandomColor();
 	crcLights.showRunwayWithDelay();
+
 	//MP3 Player & Amplifier
 	crcAudio.setAmpGain(1); //0 = low, 3 = high
 	crcAudio.setVolume(50, 50); //0 = loudest, 60 = softest ?
@@ -102,9 +106,9 @@ void loop() {
 	simulation.tick();
 	if (!buttonGateA.isStopped())
 	{
-		sensors.imu.read();
-		if (!sensors.irReadingUpdated()) {
-			sensors.readIR();
+		crcSensors.imu.read();
+		if (!crcSensors.irReadingUpdated()) {
+			crcSensors.readIR();
 		}
 	}
 	
@@ -114,48 +118,35 @@ void loop() {
 
 	if (httpClient.isAvailable()) {
 		// We can send messages up if we want to at this point.
-		//httpClient.sendUpdate(robotId);
+		httpClient.sendUpdate(robotId);
 	}
 }
 
 void initializeSystem() {
-	sensors.init();
-	crcLogger.log(crcLogger.LOG_INFO, F("IMU initialized."));
-	hardware.init();
-	crcLogger.log(crcLogger.LOG_INFO, F("Hardware initialized."));
+	crcHardware.init();
+	crcHardware.announceBatteryVoltage();
 	crcLights.init();
-	crcLogger.log(crcLogger.LOG_INFO, F("Lights initialized."));
-
-	if (crcAudio.init()) {
-		hardwareState.audioPlayer = true;
-		crcLogger.log(crcLogger.LOG_INFO, F("Audio initialized."));
-	}
-	else {
-		crcLogger.log(crcLogger.LOG_ERROR, F("Audio chip not detected."));
-	}
-	if (!sensors.imu.begin())
+	crcAudio.init();
+	crcSensors.init();
+	if (!crcSensors.imu.begin())
 	{
 		crcLogger.log(crcLogger.LOG_ERROR, F("Unable to detect IMU."));
 	}
 	else
 	{
 		// 1.) Set the accelerometer range
-		sensors.imu.setupAccel(sensors.imu.LSM9DS0_ACCELRANGE_2G);
+		crcSensors.imu.setupAccel(crcSensors.imu.LSM9DS0_ACCELRANGE_2G);
 		// 2.) Set the magnetometer sensitivity
-		sensors.imu.setupMag(sensors.imu.LSM9DS0_MAGGAIN_2GAUSS);
+		crcSensors.imu.setupMag(crcSensors.imu.LSM9DS0_MAGGAIN_2GAUSS);
 		// 3.) Setup the gyroscope
-		sensors.imu.setupGyro(sensors.imu.LSM9DS0_GYROSCALE_245DPS);
+		crcSensors.imu.setupGyro(crcSensors.imu.LSM9DS0_GYROSCALE_245DPS);
 		Serial.println(F("IMU configured."));
-	}
-
-	//Check battery voltage.
-	hardware.announceBatteryVoltage();
-	
+	}	
 
 	//Initialize the motors
 	motors.initialize(&motorLeft, &motorRight);
 
-	if (!SD.begin(hardware.sdcard_cs)) {
+	if (!SD.begin(crcHardware.sdcard_cs)) {
 		crcLogger.log(crcLogger.LOG_ERROR, F("SD card not detected."));
 		hardwareState.sdInitialized = false;
 	}

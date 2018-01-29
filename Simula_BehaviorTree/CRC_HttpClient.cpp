@@ -56,7 +56,7 @@ void CRC_HttpClient::sendUpdate(String & robotId)
 
 	//This voltage conversion code is duplicated in initializeSystem().  Which is dumb.
 	//Check battery voltage.
-	hardware.readBatteryVoltage();
+	crcHardware.tick();
 	char _voltage[20];
 	dtostrf(hardwareState.batteryVoltage, 4, 2, _voltage);
 

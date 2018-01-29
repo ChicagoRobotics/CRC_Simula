@@ -8,12 +8,13 @@ http://www.chicagorobotics.net/products
 Inspired By:
 URL: https://github.com/adafruit/Adafruit_VS1053_Library
 
-Copyright (c) 2016, Chicago Robotics Corp.
+Copyright (c) 2018, Chicago Robotics Corp.
 See README.md for license details
 ****************************************************/
 
 #include "CRC_AudioManager.h"
 #include "CRC_Hardware.h"
+#include "CRC_Logger.h"
 #include <SPI.h>
 
 // START VS1053 Definitions (TODO, delete/comment out what is not used)
@@ -63,7 +64,16 @@ boolean CRC_AudioManagerClass::init() {
 
 	// Dump on init
 	// dumpRegs();
-	return (vs1053begin == 4);
+	if (vs1053begin == 4) {
+		hardwareState.audioPlayer = true;
+		crcLogger.log(crcLogger.LOG_INFO, F("Audio initialized."));
+		return true;
+	}
+	else {
+		hardwareState.audioPlayer = false;
+		crcLogger.log(crcLogger.LOG_ERROR, F("Audio chip not detected."));
+		return false;
+	}
 }
 void CRC_AudioManagerClass::dumpRegs(void) {
 	Serial.begin(115200, SERIAL_8N1);
@@ -74,13 +84,13 @@ void CRC_AudioManagerClass::dumpRegs(void) {
 	Serial.end();
 }
 void CRC_AudioManagerClass::reset() {
-	digitalWrite(hardware.pinAmpEnable, LOW);
+	digitalWrite(crcHardware.pinAmpEnable, LOW);
 	_ampEnabled = false;
-	digitalWrite(hardware.vs1053_reset, LOW);
+	digitalWrite(crcHardware.vs1053_reset, LOW);
 	delay(100);
-	digitalWrite(hardware.vs1053_reset, HIGH);
-	digitalWrite(hardware.vs1053_cs, HIGH);
-	digitalWrite(hardware.vs1053_dcs, HIGH);
+	digitalWrite(crcHardware.vs1053_reset, HIGH);
+	digitalWrite(crcHardware.vs1053_cs, HIGH);
+	digitalWrite(crcHardware.vs1053_dcs, HIGH);
 	delay(100);
 	softReset();
 	delay(100);
@@ -100,7 +110,7 @@ void CRC_AudioManagerClass::stopAudio() {
 	sciWrite(VS1053_REG_MODE, VS1053_MODE_SM_LINE1 | VS1053_MODE_SM_SDINEW | VS1053_MODE_SM_CANCEL);
 
 	// Turn off amp
-	digitalWrite(hardware.pinAmpEnable, LOW);
+	digitalWrite(crcHardware.pinAmpEnable, LOW);
 	_ampEnabled = false;
 
 	// Close the Current State
@@ -112,25 +122,25 @@ void CRC_AudioManagerClass::spiwrite(uint8_t c) {
 }
 void CRC_AudioManagerClass::sciWrite(uint8_t addr, uint16_t data) {
 	SPI.beginTransaction(VS1053_CONTROL_SPI_SETTING);
-	digitalWrite(hardware.vs1053_cs, LOW);
+	digitalWrite(crcHardware.vs1053_cs, LOW);
 	spiwrite(VS1053_SCI_WRITE);
 	spiwrite(addr);
 	spiwrite(data >> 8);
 	spiwrite(data & 0xFF);
-	digitalWrite(hardware.vs1053_cs, HIGH);
+	digitalWrite(crcHardware.vs1053_cs, HIGH);
 	SPI.endTransaction();
 }
 uint16_t CRC_AudioManagerClass::sciRead(uint8_t addr) {
 	uint16_t data;
 	SPI.beginTransaction(VS1053_CONTROL_SPI_SETTING);
-	digitalWrite(hardware.vs1053_cs, LOW);
+	digitalWrite(crcHardware.vs1053_cs, LOW);
 	spiwrite(VS1053_SCI_READ);
 	spiwrite(addr);
 	delayMicroseconds(10);
 	data = spiread();
 	data <<= 8;
 	data |= spiread();
-	digitalWrite(hardware.vs1053_cs, HIGH);
+	digitalWrite(crcHardware.vs1053_cs, HIGH);
 	SPI.endTransaction();
 
 	return data;
@@ -180,7 +190,7 @@ boolean CRC_AudioManagerClass::playFullAudioFile(const char *trackname) {
 	return true;
 }
 boolean CRC_AudioManagerClass::readyForAudioData() {
-	return digitalRead(hardware.vs1053_dreq);
+	return digitalRead(crcHardware.vs1053_dreq);
 }
 void CRC_AudioManagerClass::feedAudioBuffer() {
 	static boolean running = false;
@@ -223,24 +233,24 @@ void CRC_AudioManagerClass::feedAudioBuffer() {
 }
 void CRC_AudioManagerClass::playAudioData(uint8_t *buffer, uint8_t buffsiz) {
 	SPI.beginTransaction(VS1053_DATA_SPI_SETTING);
-	digitalWrite(hardware.vs1053_dcs, LOW);
+	digitalWrite(crcHardware.vs1053_dcs, LOW);
 	for (uint8_t i = 0; i < buffsiz; i++) {
 		spiwrite(buffer[i]);
 	}
-	digitalWrite(hardware.vs1053_dcs, HIGH);
+	digitalWrite(crcHardware.vs1053_dcs, HIGH);
 	SPI.endTransaction();
 }
 void CRC_AudioManagerClass::enableAmp() {
-	digitalWrite(hardware.pinAmpEnable, HIGH);
+	digitalWrite(crcHardware.pinAmpEnable, HIGH);
 	_ampEnabled = true;
 }
 void CRC_AudioManagerClass::disableAmp() {
-	digitalWrite(hardware.pinAmpEnable, LOW);
+	digitalWrite(crcHardware.pinAmpEnable, LOW);
 	_ampEnabled = false;
 }
 void CRC_AudioManagerClass::playRandomAudio(String fileBase, int fileCount, String fileSuffix) {
 	if (!isPlayingAudio()) {
-		hardware.seedRandomGenerator();
+		crcHardware.seedRandomGenerator();
 		int randomFile = random(1, fileCount + 1);
 		String fileNumber = formatLeadingZero(randomFile);
 		String filename = fileBase + fileNumber + fileSuffix;
@@ -263,24 +273,24 @@ String CRC_AudioManagerClass::formatLeadingZero(int value) {
 void CRC_AudioManagerClass::setAmpGain(uint8_t level) {
 	switch (level) {
 	case 0:
-		digitalWrite(hardware.pinAmpGain0, LOW);
-		digitalWrite(hardware.pinAmpGain1, LOW);
+		digitalWrite(crcHardware.pinAmpGain0, LOW);
+		digitalWrite(crcHardware.pinAmpGain1, LOW);
 		break;
 	case 1:
-		digitalWrite(hardware.pinAmpGain0, HIGH);
-		digitalWrite(hardware.pinAmpGain1, LOW);
+		digitalWrite(crcHardware.pinAmpGain0, HIGH);
+		digitalWrite(crcHardware.pinAmpGain1, LOW);
 		break;
 	case 2:
-		digitalWrite(hardware.pinAmpGain0, LOW);
-		digitalWrite(hardware.pinAmpGain1, HIGH);
+		digitalWrite(crcHardware.pinAmpGain0, LOW);
+		digitalWrite(crcHardware.pinAmpGain1, HIGH);
 		break;
 	case 3:
-		digitalWrite(hardware.pinAmpGain0, HIGH);
-		digitalWrite(hardware.pinAmpGain1, HIGH);
+		digitalWrite(crcHardware.pinAmpGain0, HIGH);
+		digitalWrite(crcHardware.pinAmpGain1, HIGH);
 		break;
 	default:
-		digitalWrite(hardware.pinAmpGain0, LOW);
-		digitalWrite(hardware.pinAmpGain1, LOW);
+		digitalWrite(crcHardware.pinAmpGain0, LOW);
+		digitalWrite(crcHardware.pinAmpGain1, LOW);
 		//default to lowest volume.
 	}
 }

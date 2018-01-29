@@ -8,7 +8,7 @@ http://www.chicagorobotics.net/products
 Inspired By:
 URL: https://github.com/adafruit/Adafruit_VS1053_Library
 
-Copyright (c) 2016, Chicago Robotics Corp.
+Copyright (c) 2018, Chicago Robotics Corp.
 See README.md for license details
 ****************************************************/
 

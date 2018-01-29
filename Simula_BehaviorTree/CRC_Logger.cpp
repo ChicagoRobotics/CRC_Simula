@@ -5,7 +5,7 @@ Uses: General purpose logger. Can log messages to Serial Port, Wireless
 This file is designed for the Simula project by Chicago Robotics Corp.
 http://www.chicagorobotics.net/products
 
-Copyright (c) 2016, Chicago Robotics Corp.
+Copyright (c) 2018, Chicago Robotics Corp.
 See README.md for license details
 ****************************************************/
 

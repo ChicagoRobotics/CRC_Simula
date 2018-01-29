@@ -7,7 +7,7 @@ http://www.chicagorobotics.net/products
 Inspired By:
 URL: http://playground.arduino.cc/Code/StopWatchClass
 
-Copyright (c) 2016, Chicago Robotics Corp.
+Copyright (c) 2018, Chicago Robotics Corp.
 See README.md for license details
 ****************************************************/
 

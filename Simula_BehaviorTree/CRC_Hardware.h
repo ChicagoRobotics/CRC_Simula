@@ -6,7 +6,7 @@ board revision, as well as module initializations.
 This file is designed for the Simula project by Chicago Robotics Corp.
 http://www.chicagorobotics.net/products
 
-Copyright (c) 2016, Chicago Robotics Corp.
+Copyright (c) 2018, Chicago Robotics Corp.
 See README.md for license details
 ****************************************************/
 
@@ -107,10 +107,10 @@ public:
 
 #endif
 	void init();
+	void tick();
 	void startScanStatus(unsigned long startTime);
 	void endScanStatus(unsigned long startTime);
 	void seedRandomGenerator();
-	void readBatteryVoltage();
 	void announceBatteryVoltage();
 	int getRandomNumberInRange(int lowest, int highest);
 private:
@@ -119,7 +119,7 @@ private:
 	void setupSPI();
 };
 
-extern CRC_HardwareClass hardware;
+extern CRC_HardwareClass crcHardware;
 
 #endif
 
