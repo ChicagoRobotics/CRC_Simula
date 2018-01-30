@@ -157,7 +157,6 @@ private:
 	virtual bool run() override {
 		now = millis();
 		if (!nodeActive) {
-			crcHardware.tick();
 			if (hardwareState.batteryVoltage < crcHardware.lowBatteryVoltage) {
 				crcHardware.announceBatteryVoltage();
 				nodeActive = true;

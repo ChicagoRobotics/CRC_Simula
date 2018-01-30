@@ -127,7 +127,6 @@ void CRC_HardwareClass::seedRandomGenerator() {
 	randomSeed(analogRead(A3));  //Get voltage reading from an unused pin.
 }
 void CRC_HardwareClass::announceBatteryVoltage() {
-	crcHardware.tick();
 	char _voltage[20];
 	dtostrf(hardwareState.batteryVoltage, 4, 3, _voltage);
 

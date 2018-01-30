@@ -104,6 +104,7 @@ void setup() {
 void loop() {
 	crcAudio.tick();
 	simulation.tick();
+	crcHardware.tick();
 	if (!buttonGateA.isStopped())
 	{
 		crcSensors.imu.read();

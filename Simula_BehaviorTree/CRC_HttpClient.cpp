@@ -56,13 +56,11 @@ void CRC_HttpClient::sendUpdate(String & robotId)
 
 	//This voltage conversion code is duplicated in initializeSystem().  Which is dumb.
 	//Check battery voltage.
-	crcHardware.tick();
 	char _voltage[20];
 	dtostrf(hardwareState.batteryVoltage, 4, 2, _voltage);
 
 	char szPostData[50];
-	sprintf_P(szPostData, (char *) F("{ID: \"%s\", S1: \"%s\"}"), 
-		robotId.c_str(), _voltage);
+	sprintf_P(szPostData, (char *) F("{ID: \"%s\", S1: \"%s\"}"), robotId.c_str(), _voltage);
 
 	char szTemp[255];
 	sprintf_P(szTemp, (char *) F("POST /api/robotevent HTTP/1.1\r\nHost: %s\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: %d\r\n\r\n%s\r\n"), _simulaWebHostName.c_str(), strlen(szPostData), szPostData);
