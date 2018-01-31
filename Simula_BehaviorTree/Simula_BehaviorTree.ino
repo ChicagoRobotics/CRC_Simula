@@ -88,7 +88,7 @@ void setup() {
 	crcAudio.setAmpGain(1); //0 = low, 3 = high
 	crcAudio.setVolume(50, 50); //0 = loudest, 60 = softest ?
 	
-	//crcZigbeeWifi.init(Serial2);
+	crcZigbeeWifi.init(Serial2);
 	crcLogger.log(crcLogger.LOG_INFO, F("Setup complete."));
 
 	if (!crcConfigurationManager.getConfig(F("unit.id"), robotId))

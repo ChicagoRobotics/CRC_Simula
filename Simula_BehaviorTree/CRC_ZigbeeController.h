@@ -56,7 +56,6 @@ class CRC_ZigbeeController : public CRC_IP_Network
 
 	boolean isConnected(boolean logIsConnectedMessage, boolean atomic=true);
 
-
 	// Support IP Services Interface
 	boolean isAvailable() { return isReady() && _isConnected; };
 	boolean sendTcpRequest(IPAddress &ipAddress, uint16_t port, uint8_t * content, uint16_t length);

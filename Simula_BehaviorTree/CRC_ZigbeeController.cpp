@@ -27,7 +27,7 @@ static const uint8_t WI_STATUS_WIFI_CONNECTED = 0x02;
 static const uint8_t WI_STATUS_WIFI_NOTAVAILABLE = 0x03;
 
 
-static const unsigned long BAUD_RATES[] = 
+static const unsigned long BAUD_RATES[] =
 {
 	115200, // Preferred
 	9600,   // Default
@@ -47,8 +47,8 @@ void CRC_ZigbeeController::init(HardwareSerial & serialPort)
 
 	// Have not attempted connection
 	// Let's see if the xbee comes up with the existing connection
-	_attemptedNetwork = -1; 
-	if(!scanForModule());
+	_attemptedNetwork = -1;
+	if (!scanForModule());
 }
 
 boolean CRC_ZigbeeController::scanForModule()
@@ -56,16 +56,14 @@ boolean CRC_ZigbeeController::scanForModule()
 	uint8_t readBuffer[255];
 	// Attempt each Baud Rate
 	int numRates = sizeof(BAUD_RATES) / sizeof(BAUD_RATES[0]);
-	
-	for (int rateId = 0; rateId < numRates; rateId++)
-	{
+
+	for (int rateId = 0; rateId < numRates; rateId++) {
 		crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Checking for Device at Baud Rate: %lu"), BAUD_RATES[rateId]);
 		_serialPort->flush();
 		_serialPort->end();
 		_serialPort->begin(BAUD_RATES[rateId], SERIAL_8N1);
 		_serialPort->setTimeout(5000);
-		if (enterCommandMode())
-		{
+		if (enterCommandMode()) {
 			_baudRate = BAUD_RATES[rateId];
 			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Found device at: %lu"), _baudRate);
 			crcLogger.log(crcLogger.LOG_INFO, F("XBEE:Identifying Device Type"));
@@ -87,25 +85,22 @@ boolean CRC_ZigbeeController::scanForModule()
 	}
 }
 
-boolean CRC_ZigbeeController::enterCommandMode()
-{
+boolean CRC_ZigbeeController::enterCommandMode() {
 	flushInboundBuffer();
-	char input[] = {0,0,0,0,0};
+	char input[] = { 0,0,0,0,0 };
 
 	delay(1000); // Guard Time
 	_serialPort->print(F("+++")); // Enter Command Mode
 	delay(1000); // Guard Time
-	if (_serialPort->readBytes(input, 3) == 3)
-	{
+	if (_serialPort->readBytes(input, 3) == 3) {
 		return (strncmp_P(input, XBEE_CMD_OK, 3) == 0);
 	}
 
 	crcLogger.log(crcLogger.LOG_TRACE, F("XBEE:Timeout Waiting for Command Mode"));
-	return false;	
+	return false;
 }
 
-void CRC_ZigbeeController::exitCommandMode()
-{
+void CRC_ZigbeeController::exitCommandMode() {
 	_serialPort->print(F("AT"));
 	_serialPort->print(F("CN"));
 	_serialPort->print(F("\r"));
@@ -113,8 +108,7 @@ void CRC_ZigbeeController::exitCommandMode()
 	flushInboundBuffer();
 }
 
-char* CRC_ZigbeeController::sendCommand(char* command, boolean atomic)
-{
+char* CRC_ZigbeeController::sendCommand(char* command, boolean atomic) {
 	if (atomic) {
 		enterCommandMode();
 	}
@@ -166,23 +160,19 @@ boolean CRC_ZigbeeController::isReady()
 	}
 
 	// If we gave up, stop trying
-	if (!isModuleDetected() || hardwareState.wireless == WI_STATUS_WIFI_NOTAVAILABLE)
-	{
+	if (!isModuleDetected() || hardwareState.wireless == WI_STATUS_WIFI_NOTAVAILABLE) {
 		return false;
 	}
 
 	return connectToNetwork();
 }
 
-boolean CRC_ZigbeeController::isConnected(boolean logIsConnectedMessage, boolean atomic)
-{
+boolean CRC_ZigbeeController::isConnected(boolean logIsConnectedMessage, boolean atomic) {
 	char * status = sendCommand(F("AI"), atomic);
-	if (strcmp_P(status, (char *)F("0")) == 0)
-	{
+	if (strcmp_P(status, (char *)F("0")) == 0) {
 		_isConnected = true;
 
-		if (logIsConnectedMessage)
-		{
+		if (logIsConnectedMessage) {
 			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Connected to Network '%s'"), getNetworkId(atomic));
 		}
 		hardwareState.wireless = WI_STATUS_WIFI_CONNECTED;
@@ -195,16 +185,15 @@ boolean CRC_ZigbeeController::isConnected(boolean logIsConnectedMessage, boolean
 
 		return _isConnected;
 	}
-	
+
 	crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:AI Status: %s"), status);
 	if (strcmp_P(status, (char *)F("1")) == 0		// Wi-Fi transceiver initialization in progress
-		    || strcmp_P(status, (char *)F("2")) == 0	// Wi-Fi transceiver initialized, but not yet scanning for access point.
-			|| strcmp_P(status, (char *)F("41")) == 0	// Device joined a network and is waiting for IP configuration to complete/DHCP
-			|| strcmp_P(status, (char *)F("42")) == 0	// Device is joined, IP is configured, and listening sockets are being set up.
-		)
-	{
+		|| strcmp_P(status, (char *)F("2")) == 0	// Wi-Fi transceiver initialized, but not yet scanning for access point.
+		|| strcmp_P(status, (char *)F("41")) == 0	// Device joined a network and is waiting for IP configuration to complete/DHCP
+		|| strcmp_P(status, (char *)F("42")) == 0	// Device is joined, IP is configured, and listening sockets are being set up.
+		) {
 		// Give it more time, it it attempting to join with current settings
-		_lastAttempt.restart(); 
+		_lastAttempt.restart();
 	}
 
 	return _isConnected;
@@ -212,42 +201,40 @@ boolean CRC_ZigbeeController::isConnected(boolean logIsConnectedMessage, boolean
 
 boolean CRC_ZigbeeController::connectToNetwork()
 {
+	//TODO: Some of these numeric values should perhaps be converted to variables.
+
 	// Give it time to connect
-	if (_lastAttempt.elapsed() < 5000)
-	{
+	if (_lastAttempt.elapsed() < 5000) {
 		return _isConnected;
 	}
 
 	// Check, are we connected to a Wireless Network?
 	// This could be a preconfigured network, or something we
 	// Just connected to via configuration
-	if (isConnected(true, true) || _lastAttempt.elapsed() < 10000)
-	{
+	if (isConnected(true, true) || _lastAttempt.elapsed() < 10000) {
 		// We are connected, or need more time
 		return _isConnected;
 	}
-	
+
 	// Did we try all of them?
-	if (_attemptedNetwork >= 10)
-	{
-	// Give up, none of our configured networks are available 
-	// We're not going to keep attempting for now
-	hardwareState.wireless = WI_STATUS_WIFI_NOTAVAILABLE;
-	crcLogger.log(crcLogger.LOG_INFO, F("XBEE:No configured Wifi Networks available"));
-	return _isConnected;
+	//TODO this "10" is the magic number that defines SSID count.  Variable?
+	if (_attemptedNetwork >= 10) {
+		// Give up, none of our configured networks are available 
+		// We're not going to keep attempting for now
+		hardwareState.wireless = WI_STATUS_WIFI_NOTAVAILABLE;
+		crcLogger.log(crcLogger.LOG_INFO, F("XBEE:No configured Wifi Networks available"));
+		return _isConnected;
 	}
 
 	// Attempt the next network
 	char temp[100];
 	boolean firstAttempt = false;
 	uint8_t countAttempted = 0;
-	if (_attemptedNetwork < 0)
-	{
+	if (_attemptedNetwork < 0) {
 		firstAttempt = true;
 
 		// Enforce the Operational Modes we want to be in
-		if (enterCommandMode())
-		{
+		if (enterCommandMode()) {
 			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Device Opt: %s"), sendCommand(F("DO 0"), false));
 			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Set Network Type: %s"), sendCommand(F("AH 2"), false));
 			crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Set to DHCP: %s"), sendCommand(F("MA 0"), false));
@@ -261,14 +248,12 @@ boolean CRC_ZigbeeController::connectToNetwork()
 		}
 	}
 
-	while (_attemptedNetwork < 10)
-	{
+	while (_attemptedNetwork < 10) {
 		_attemptedNetwork++;
 		sprintf_P(temp, (char *)F("wifi.ssid.%d"), _attemptedNetwork);
 
 		// Attempt each remaining index, until we reach 10
-		if (crcConfigurationManager.getConfig(temp, _receive, sizeof(_receive)))
-		{
+		if (crcConfigurationManager.getConfig(temp, _receive, sizeof(_receive))) {
 			countAttempted++;
 
 			enterCommandMode();
@@ -279,16 +264,14 @@ boolean CRC_ZigbeeController::connectToNetwork()
 
 			// Configure Encryption Mode
 			sprintf_P(temp, (char *)F("wifi.mode.%d"), _attemptedNetwork);
-			if (crcConfigurationManager.getConfig(temp, _receive, sizeof(_receive)))
-			{
+			if (crcConfigurationManager.getConfig(temp, _receive, sizeof(_receive))) {
 				sprintf_P(temp, (char *)F("EE %s"), _receive);
 				crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Setting Mode: %s - %s"), temp, sendCommand(temp, false));
 			}
 
 			// Configure PSK Mode
 			sprintf_P(temp, (char *)F("wifi.psk.%d"), _attemptedNetwork);
-			if (crcConfigurationManager.getConfig(temp, _receive, sizeof(_receive)))
-			{
+			if (crcConfigurationManager.getConfig(temp, _receive, sizeof(_receive))) {
 				sprintf_P(temp, (char *)F("PK %s"), _receive);
 				crcLogger.logF(crcLogger.LOG_INFO, F("XBEE:Setting PSK: %s - %s"), temp, sendCommand(temp, false));
 			}
@@ -306,8 +289,7 @@ boolean CRC_ZigbeeController::connectToNetwork()
 		}
 	}
 
-	if (countAttempted == 0 && firstAttempt)
-	{
+	if (countAttempted == 0 && firstAttempt) {
 		// Give Up, nothing was configured
 		hardwareState.wireless = WI_STATUS_WIFI_NOTAVAILABLE;
 		crcLogger.log(crcLogger.LOG_INFO, F("XBEE:Wifi Networks not configured"));
@@ -320,8 +302,7 @@ boolean CRC_ZigbeeController::connectToNetwork()
 /**
 * Returns the Current Network Id
 */
-char * CRC_ZigbeeController::getNetworkId(boolean atomic)
-{
+char * CRC_ZigbeeController::getNetworkId(boolean atomic) {
 	return sendCommand("ID", atomic);
 }
 
@@ -329,19 +310,16 @@ char * CRC_ZigbeeController::getNetworkId(boolean atomic)
 /**
 * Reads and discards all inbound bytes int he buffer
 **/
-void CRC_ZigbeeController::flushInboundBuffer()
-{
+void CRC_ZigbeeController::flushInboundBuffer() {
 	int c;
 	char sz_temp[5];
 
-	if (!_serialPort->available())
-	{
+	if (!_serialPort->available()) {
 		return;
 	}
 
 	Serial.println("Flushing Response Buffer");
-	while (_serialPort->available())
-	{
+	while (_serialPort->available()) {
 		c = _serialPort->read();
 		sprintf(sz_temp, " %02X", c);
 		Serial.print(sz_temp);
@@ -349,11 +327,9 @@ void CRC_ZigbeeController::flushInboundBuffer()
 
 	Serial.println(" ");
 	Serial.println("Flush Response completed");
-	
 }
 
-boolean CRC_ZigbeeController::sendTcpRequest(IPAddress &ipAddress, uint16_t port, uint8_t * content, uint16_t length)
-{
+boolean CRC_ZigbeeController::sendTcpRequest(IPAddress &ipAddress, uint16_t port, uint8_t * content, uint16_t length) {
 	flushInboundBuffer();
 
 	uint8_t _calcChecksum = 0x00;
@@ -377,7 +353,7 @@ boolean CRC_ZigbeeController::sendTcpRequest(IPAddress &ipAddress, uint16_t port
 
 
 
-	_serialPort->write((uint8_t) 0x7E);
+	_serialPort->write((uint8_t)0x7E);
 	_serialPort->write(&((uint8_t *)&packetLen)[1], 1); // Length MSB
 	_serialPort->write(&((uint8_t *)&packetLen)[0], 1);  // Length LSB
 
@@ -417,27 +393,22 @@ boolean CRC_ZigbeeController::sendTcpRequest(IPAddress &ipAddress, uint16_t port
 	return true;
 }
 
-boolean CRC_ZigbeeController::hasResponse()
-{
+boolean CRC_ZigbeeController::hasResponse() {
 	int c;
 	char sz_temp[10];
 
-	if (!_serialPort->available())
-	{
+	if (!_serialPort->available()) {
 		return;
 	}
 
 	Serial.println("Response Packet");
-	while (_serialPort->available())
-	{
+	while (_serialPort->available()) {
 		c = _serialPort->read();
 
-		if (isPrintable(c) || c == '\r' || c == '\n')
-		{
-			Serial.print((char) c);
+		if (isPrintable(c) || c == '\r' || c == '\n') {
+			Serial.print((char)c);
 		}
-		else
-		{
+		else {
 			sprintf(sz_temp, " %02X ", c);
 			Serial.print(sz_temp);
 		}
