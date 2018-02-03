@@ -52,7 +52,7 @@ String robotId = "";
 Behavior_Tree behaviorTree;
 Behavior_Tree::Selector selector[2];
 Behavior_Tree::RandomSelector randomSort[1];
-Button_Gate buttonGateA(crcHardware.pinButtonA, "Button A");
+Button_Gate buttonGateA(crcHardware.pinButtonA, "Button A"), buttonGateB(crcHardware.pinButtonB, "Button B");
 Battery_Check batteryCheck;
 Cliff_Center cliffCenter;
 Cliff_Left cliffLeft;
@@ -75,9 +75,11 @@ void setup() {
 	initializeSystem();
 	
 	//Behavior Tree construction. Visualize: https://www.gliffy.com/go/publish/10755293
-	behaviorTree.setRootChild(&buttonGateA);
-	buttonGateA.addChildren({ &batteryCheck, &orientationCheck, &selector[0], &randomSort[0] });
-	selector[0].addChildren({ &perimeterCenter, &perimeterLeft, &perimeterRight, &cliffCenter, &cliffLeft, &cliffRight });
+	//behaviorTree.setRootChild(&buttonGateA);
+	behaviorTree.setRootChild(&selector[0]);
+	selector[0].addChildren({ &buttonGateA, &buttonGateB });
+	buttonGateA.addChildren({ &batteryCheck, &orientationCheck, &selector[1], &randomSort[0] });
+	selector[1].addChildren({ &perimeterCenter, &perimeterLeft, &perimeterRight, &cliffCenter, &cliffLeft, &cliffRight });
 	randomSort[0].addChildren({ &forwardRandom, &doNothing, &turnLeft, &turnRight });
 
 	//Lighting display
@@ -105,21 +107,39 @@ void loop() {
 	crcAudio.tick();
 	simulation.tick();
 	crcHardware.tick();
-	if (!buttonGateA.isStopped())
-	{
-		crcSensors.imu.read();
-		if (!crcSensors.irReadingUpdated()) {
-			crcSensors.readIR();
-		}
-	}
+	toggleSensors();
 	
 	if (!behaviorTree.run()) {
 		crcLogger.log(crcLogger.LOG_INFO, F("All tree nodes returned false."));
 	}
 
+
 	if (httpClient.isAvailable()) {
 		// We can send messages up if we want to at this point.
 		httpClient.sendUpdate(robotId);
+	}
+}
+
+void toggleSensors() {
+	if (buttonGateA.isStopped()) {
+		if (hardwareState.sensorsActive) {
+			motors.allStop();
+			crcSensors.deactivate();
+			simulation.showLedNone();
+			crcLights.setButtonLevel(0);
+			hardwareState.sensorsActive = false;
+		}
+	}
+	else {
+		if (!hardwareState.sensorsActive) {
+			crcSensors.activate();
+			simulation.showLedBio();
+			hardwareState.sensorsActive = true;
+		}
+		crcSensors.imu.read();
+		if (!crcSensors.irReadingUpdated()) {
+			crcSensors.readIR();
+		}
 	}
 }
 

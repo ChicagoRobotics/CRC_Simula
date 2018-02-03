@@ -33,6 +33,7 @@ struct HARDWARE_STATE {
 	unsigned long loopMaxTimeMillis = 0;  // Max Time in millis
 	float batteryVoltage = 0;  // Detected voltage of battery
 	boolean batteryLow = true;
+	boolean sensorsActive = false;
 };
 extern struct HARDWARE_STATE hardwareState;
 

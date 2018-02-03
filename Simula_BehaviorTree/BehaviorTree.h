@@ -116,26 +116,15 @@ private:
 			debounceTime = millis();
 		}
 
-		if (((millis() - debounceTime) > debounceDelay) && (_reading != _buttonState))
-		{
+		if (((millis() - debounceTime) > debounceDelay) && (_reading != _buttonState)) {
 			_buttonState = _reading;
 			if (_buttonState == HIGH) {
 				_gateClosed = !_gateClosed;
-				if (_gateClosed)
-				{
+				if (_gateClosed) {
 					crcLogger.logF(crcLogger.LOG_INFO, F("Closed button gate %s."), _name);
-					motors.allStop();
-					crcSensors.deactivate();
-					simulation.showLedNone();
-					crcLights.setButtonLevel(0);
 				}
 				else {
 					crcLogger.logF(crcLogger.LOG_INFO, F("Opened button gate %s."), _name);
-					crcSensors.activate();
-					simulation.showLedBio();
-					//delay(50);
-					//return true to allow sensors to read before next tree loop.
-					return true;
 				}
 			}
 		}
