@@ -109,11 +109,12 @@ private:
 	int _lastButtonState = HIGH;
 	int _buttonNum;
 	unsigned long debounceTime;
-	const long debounceDelay = 10;
+	long debounceDelay = 10;
 	virtual bool run() override {
 		int _reading = digitalRead(_buttonNum);
 		if (_reading != _lastButtonState) {
 			debounceTime = millis();
+			Serial.println("Value inequal");
 		}
 
 		if (((millis() - debounceTime) > debounceDelay) && (_reading != _buttonState)) {
@@ -465,7 +466,6 @@ public:
 private:
 	int percentChance;
 	bool _clockwise;
-
 	bool nodeActive = false;
 	long duration;
 	unsigned long currentTime;

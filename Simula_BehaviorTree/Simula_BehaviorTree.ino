@@ -50,8 +50,9 @@ CRC_HttpClient httpClient(crcZigbeeWifi);
 String robotId = "";
 
 Behavior_Tree behaviorTree;
-Behavior_Tree::Selector selector[2];
-Behavior_Tree::RandomSelector randomSort[1];
+Behavior_Tree::Selector selector[1];
+Behavior_Tree::Sequence sequence;
+Behavior_Tree::RandomSelector randomSort;
 Button_Gate buttonGateA(crcHardware.pinButtonA, "Button A"), buttonGateB(crcHardware.pinButtonB, "Button B");
 Battery_Check batteryCheck;
 Cliff_Center cliffCenter;
@@ -63,7 +64,7 @@ Perimeter_Right perimeterRight;
 Orientation_Check orientationCheck;
 Forward_Random forwardRandom(20);
 Turn_Random turnLeft(15, true), turnRight(15, false);
-Do_Nothing doNothing(80);
+Do_Nothing doNothing(80), doNothing2(60);
 
 void setup() {
 	Serial.begin(115200);
@@ -75,12 +76,12 @@ void setup() {
 	initializeSystem();
 	
 	//Behavior Tree construction. Visualize: https://www.gliffy.com/go/publish/10755293
-	//behaviorTree.setRootChild(&buttonGateA);
-	behaviorTree.setRootChild(&selector[0]);
-	selector[0].addChildren({ &buttonGateA, &buttonGateB });
-	buttonGateA.addChildren({ &batteryCheck, &orientationCheck, &selector[1], &randomSort[0] });
-	selector[1].addChildren({ &perimeterCenter, &perimeterLeft, &perimeterRight, &cliffCenter, &cliffLeft, &cliffRight });
-	randomSort[0].addChildren({ &forwardRandom, &doNothing, &turnLeft, &turnRight });
+	behaviorTree.setRootChild(&sequence);
+	sequence.addChildren({ &buttonGateA, &buttonGateB });
+	buttonGateA.addChildren({ &batteryCheck, &orientationCheck, &selector[0], &randomSort });
+	buttonGateB.addChildren({ &doNothing2 });
+	selector[0].addChildren({ &perimeterCenter, &perimeterLeft, &perimeterRight, &cliffCenter, &cliffLeft, &cliffRight });
+	randomSort.addChildren({ &forwardRandom, &doNothing, &turnLeft, &turnRight });
 
 	//Lighting display
 	crcLights.setRandomColor();
@@ -114,10 +115,10 @@ void loop() {
 	}
 
 
-	if (httpClient.isAvailable()) {
-		// We can send messages up if we want to at this point.
-		httpClient.sendUpdate(robotId);
-	}
+	//if (httpClient.isAvailable()) {
+	//	// We can send messages up if we want to at this point.
+	//	httpClient.sendUpdate(robotId);
+	//}
 }
 
 void toggleSensors() {
