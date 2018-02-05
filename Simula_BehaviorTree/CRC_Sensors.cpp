@@ -31,10 +31,11 @@ void CRC_Sensors::activate() {
 	digitalWrite(crcHardware.pinActPerim4, HIGH);
 	digitalWrite(crcHardware.pinActFrntIR, HIGH);
 	lastIrPollSensors = 0;
+	hardwareState.sensorsActive = true;
 }
 
 void CRC_Sensors::deactivate() {
-	//Activate sensors
+	//Deactivate sensors
 	digitalWrite(crcHardware.pinActEdge1, LOW);
 	digitalWrite(crcHardware.pinActEdge2, LOW);
 	digitalWrite(crcHardware.pinActPerim1, LOW);
@@ -43,6 +44,7 @@ void CRC_Sensors::deactivate() {
 	digitalWrite(crcHardware.pinActPerim4, LOW);
 	digitalWrite(crcHardware.pinActFrntIR, LOW);
 	lastIrPollSensors = 0;
+	hardwareState.sensorsActive = false;
 }
 
 void CRC_Sensors::readIR() {

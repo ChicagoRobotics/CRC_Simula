@@ -43,9 +43,10 @@ public:
 	void showLedBio();
 	void showLedNone();
 	int getSineWave(float amplitude, float periodMillis, long millis);
+	bool ledsActive();
 
 	//Action related
-	bool actionActive;
+	bool motionActive;
 	bool perimeterActive;
 	int turnSpeed;
 	int straightSpeed;

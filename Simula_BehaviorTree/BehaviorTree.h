@@ -100,7 +100,7 @@ public:
 };
 class Button_Gate : public Behavior_Tree::Selector {
 public:
-	bool isStopped() { return _gateClosed; }
+	bool isClosed() { return _gateClosed; }
 	Button_Gate(int buttonNum, char* name) : _buttonNum(buttonNum), _name(name) {}
 private:
 	char* _name;
@@ -114,7 +114,6 @@ private:
 		int _reading = digitalRead(_buttonNum);
 		if (_reading != _lastButtonState) {
 			debounceTime = millis();
-			Serial.println("Value inequal");
 		}
 
 		if (((millis() - debounceTime) > debounceDelay) && (_reading != _buttonState)) {
@@ -405,18 +404,18 @@ private:
 
 	virtual bool run() override {
 		currentTime = millis();
-		if (!nodeActive && !simulation.actionActive) {
+		if (!nodeActive && !simulation.motionActive) {
 			long randNum = random(1, 101);
 			if (randNum <= percentChance) {
 				nodeActive = true;
-				simulation.actionActive = true;
+				simulation.motionActive = true;
 				nodeStartTime = currentTime;
 				crcLogger.logF(crcLogger.LOG_INFO, F("Do_Nothing active."));
 			}
 		}
 		if (nodeActive && (nodeStartTime + duration < currentTime)) {
 			crcLogger.logF(crcLogger.LOG_INFO, F("Do_Nothing complete."));
-			simulation.actionActive = false;
+			simulation.motionActive = false;
 			nodeActive = false;
 			nodeStartTime = 0;
 		}
@@ -438,12 +437,12 @@ private:
 
 	virtual bool run() override {
 		currentTime = millis();
-		if (!nodeActive && !simulation.actionActive) {
+		if (!nodeActive && !simulation.motionActive) {
 			long randNum = random(1, 101);
 			duration = random(100, 2000);
 			if (randNum <= percentChance) {
 				nodeActive = true;
-				simulation.actionActive = true;
+				simulation.motionActive = true;
 				nodeStartTime = currentTime;
 				crcLogger.logF(crcLogger.LOG_INFO, F("Forward_Random active, duration = %ul ms."), duration);
 				motors.setPower(simulation.straightSpeed, simulation.straightSpeed);
@@ -451,7 +450,7 @@ private:
 		}
 		if (nodeActive && (nodeStartTime + duration < currentTime)) {
 			crcLogger.logF(crcLogger.LOG_INFO, F("Forward_Random complete."));
-			simulation.actionActive = false;
+			simulation.motionActive = false;
 			nodeActive = false;
 			nodeStartTime = 0;
 		}
@@ -473,12 +472,12 @@ private:
 
 	virtual bool run() override {
 		currentTime = millis();
-		if (!nodeActive && !simulation.actionActive) {
+		if (!nodeActive && !simulation.motionActive) {
 			long randNum = random(1, 101);
 			if (randNum <= percentChance) {
 				duration = random(50, 1500);
 				nodeActive = true;
-				simulation.actionActive = true;
+				simulation.motionActive = true;
 				simulation.perimeterActive = true;
 				nodeStartTime = currentTime;
 				crcLogger.logF(crcLogger.LOG_INFO, F("Turn_Random active, duration = %ul ms."), duration);
@@ -492,7 +491,7 @@ private:
 		}
 		if (nodeActive && (nodeStartTime + duration < currentTime)) {
 			crcLogger.logF(crcLogger.LOG_INFO, F("Turn_Random complete."));
-			simulation.actionActive = false;
+			simulation.motionActive = false;
 			simulation.perimeterActive = false;
 			motors.allStop();
 			nodeActive = false;

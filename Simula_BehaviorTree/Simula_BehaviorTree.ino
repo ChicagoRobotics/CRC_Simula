@@ -79,7 +79,6 @@ void setup() {
 	behaviorTree.setRootChild(&sequence);
 	sequence.addChildren({ &buttonGateA, &buttonGateB });
 	buttonGateA.addChildren({ &batteryCheck, &orientationCheck, &selector[0], &randomSort });
-	buttonGateB.addChildren({ &doNothing2 });
 	selector[0].addChildren({ &perimeterCenter, &perimeterLeft, &perimeterRight, &cliffCenter, &cliffLeft, &cliffRight });
 	randomSort.addChildren({ &forwardRandom, &doNothing, &turnLeft, &turnRight });
 
@@ -90,7 +89,7 @@ void setup() {
 	//MP3 Player & Amplifier
 	crcAudio.setAmpGain(1); //0 = low, 3 = high
 	crcAudio.setVolume(50, 50); //0 = loudest, 60 = softest ?
-	
+	delay(2000);
 	crcZigbeeWifi.init(Serial2);
 	crcLogger.log(crcLogger.LOG_INFO, F("Setup complete."));
 
@@ -108,40 +107,54 @@ void loop() {
 	crcAudio.tick();
 	simulation.tick();
 	crcHardware.tick();
-	toggleSensors();
+	toggleButtons();
 	
 	if (!behaviorTree.run()) {
 		crcLogger.log(crcLogger.LOG_INFO, F("All tree nodes returned false."));
 	}
-
-
-	//if (httpClient.isAvailable()) {
-	//	// We can send messages up if we want to at this point.
-	//	httpClient.sendUpdate(robotId);
-	//}
 }
 
-void toggleSensors() {
-	if (buttonGateA.isStopped()) {
+void toggleButtons() {
+	//If buttonGateA or buttonGateB are open, sensors active.
+	//If buttonGateA & buttonGateB are closed, sensors deactive.
+
+	if (buttonGateA.isClosed() && buttonGateB.isClosed()) {
 		if (hardwareState.sensorsActive) {
-			motors.allStop();
-			crcSensors.deactivate();
-			simulation.showLedNone();
-			crcLights.setButtonLevel(0);
-			hardwareState.sensorsActive = false;
+			deactivateSensors();
 		}
 	}
 	else {
 		if (!hardwareState.sensorsActive) {
-			crcSensors.activate();
-			simulation.showLedBio();
-			hardwareState.sensorsActive = true;
+			activateSensors();
 		}
 		crcSensors.imu.read();
 		if (!crcSensors.irReadingUpdated()) {
 			crcSensors.readIR();
 		}
 	}
+
+	if (!buttonGateA.isClosed() && !simulation.ledsActive()) {
+		simulation.showLedBio();
+	}
+
+	if (buttonGateA.isClosed() && simulation.ledsActive()) {
+		simulation.showLedNone();
+	}
+
+	if (!buttonGateB.isClosed() && httpClient.isAvailable()) {
+		httpClient.sendUpdate(robotId);
+	}
+}
+
+void activateSensors() {
+	crcSensors.activate();
+}
+
+void deactivateSensors() {
+	motors.allStop();
+	crcSensors.deactivate();
+	simulation.showLedNone();
+	crcLights.setButtonLevel(0);
 }
 
 void initializeSystem() {
