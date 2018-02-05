@@ -5,7 +5,7 @@ Distance Sensors API.
 This file is designed for the Simula project by Chicago Robotics Corp.
 http://www.chicagorobotics.net/products
 
-Copyright (c) 2016, Chicago Robotics Corp.
+Copyright (c) 2018, Chicago Robotics Corp.
 See README.md for license details
 ****************************************************/
 #include "CRC_IR_AnalogDistance.h"

@@ -6,7 +6,7 @@ board revision, as well as module initializations.
 This file is designed for the Simula project by Chicago Robotics Corp.
 http://www.chicagorobotics.net/products
 
-Copyright (c) 2016, Chicago Robotics Corp.
+Copyright (c) 2018, Chicago Robotics Corp.
 See README.md for license details
 ****************************************************/
 
@@ -16,12 +16,31 @@ See README.md for license details
 
 #include "CRC_Hardware.h"
 #include "CRC_Sensors.h"
+#include "CRC_Logger.h"
 
 void CRC_HardwareClass::init() {
 	seedRandomGenerator();
 	setupPins();
 	setupSPI();
 	setupI2C();
+	tick();
+	crcLogger.log(crcLogger.LOG_INFO, F("Hardware initialized."));
+}
+void CRC_HardwareClass::tick() {
+	unsigned long now = millis();
+	unsigned long lastCheck = 0;
+	if ((lastCheck == 0) || (now > lastCheck + battCheckIntervalMs)) {
+		int rawVoltage = analogRead(crcHardware.pinBatt);
+		//Standard resistive voltage divider.
+		//In Mainboard v3.05 and up, the resistors are both 10K, 
+		//so we multiply by two.
+		//Also, 6 freshly charged Amazon black NiMH batteries
+		//measure in at 8.56 volts.
+		hardwareState.batteryVoltage = (rawVoltage * (5.00 / 1023.00) * 2);
+		if (hardwareState.batteryVoltage > lowBatteryVoltage) {
+			hardwareState.batteryLow = false;
+		}
+	}
 }
 void CRC_HardwareClass::setupPins()
 {
@@ -50,7 +69,8 @@ void CRC_HardwareClass::setupPins()
 
 	// 
 	pinMode(pinButtonLED, OUTPUT);
-	pinMode(pinButton, INPUT_PULLUP);
+	pinMode(pinButtonA, INPUT_PULLUP);
+	pinMode(pinButtonB, INPUT_PULLUP);
 
 	// Motor Pins
 	pinMode(mtr1In1, OUTPUT);
@@ -107,22 +127,17 @@ void CRC_HardwareClass::endScanStatus(unsigned long startTime)
 void CRC_HardwareClass::seedRandomGenerator() {
 	randomSeed(analogRead(A3));  //Get voltage reading from an unused pin.
 }
-float CRC_HardwareClass::readBatteryVoltage() {
-	int preVoltage = analogRead(hardware.pinBatt);
-	//Standard resistive voltage divider.
-	//In Mainboard v3.05 and up, the resistors are both 10K, 
-	//so we multiply by two.
-	//Also, 6 freshly charged Amazon black NiMH batteries
-	//measure in at 8.56 volts.
-	float postVoltage = (preVoltage * (5.00 / 1023.00) * 2);
-	Serial.print(F("Battery voltage: "));
-	Serial.println(postVoltage);
-	if (postVoltage < hardware.lowBatteryVoltage) {
-		Serial.print(F("Voltage below low battery setting of "));
-		Serial.print(hardware.lowBatteryVoltage);
-		Serial.println(F(" volts."));
+void CRC_HardwareClass::announceBatteryVoltage() {
+	char _voltage[20];
+	dtostrf(hardwareState.batteryVoltage, 4, 3, _voltage);
+
+	if (hardwareState.batteryLow) {
+		crcLogger.logF(crcLogger.LOG_WARN, F("Batteries low at %s volts."), _voltage);
 	}
-	return postVoltage;
+	else
+	{
+		crcLogger.logF(crcLogger.LOG_INFO, F("Batteries good at %s volts."), _voltage);
+	}
 }
 int CRC_HardwareClass::getRandomNumberInRange(int lowest, int highest) {
 	seedRandomGenerator();

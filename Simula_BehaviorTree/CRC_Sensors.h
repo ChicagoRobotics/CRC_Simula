@@ -5,7 +5,7 @@ Simula
 This file is designed for the Simula project by Chicago Robotics Corp.
 http://www.chicagorobotics.net/products
 
-Copyright (c) 2016, Chicago Robotics Corp.
+Copyright (c) 2018, Chicago Robotics Corp.
 See README.md for license details
 ****************************************************/
 
@@ -29,20 +29,20 @@ public:
 	void deactivate();
 	void readIR();
 	boolean irReadingUpdated();
-	Adafruit_LSM9DS0 lsm;
+	Adafruit_LSM9DS0 imu;
 
 	//Distance sensors
-	boolean irLeftCliff;		// Left cliff sensor reading
-	boolean irRightCliff;		// Right cliff sensor reading
-	uint8_t irLeftCM;			// Left IR CM reading
-	uint8_t irLeftFrontCM;		// Left front IR CM reading
-	uint8_t irFrontCM;			// Front IR CM reading
-	uint8_t irRightFrontCM;		// Right front IR CM reading
-	uint8_t irRightCM;			// Right IR CM reading
-	uint8_t pingFrontCM;		// Front Ping CM Reading
+	boolean irLeftCliff = true;		// Left cliff sensor reading
+	boolean irRightCliff = true;		// Right cliff sensor reading
+	uint8_t irLeftCM = 0;			// Left IR CM reading
+	uint8_t irLeftFrontCM = 0;		// Left front IR CM reading
+	uint8_t irFrontCM = 0;			// Front IR CM reading
+	uint8_t irRightFrontCM = 0;		// Right front IR CM reading
+	uint8_t irRightCM = 0;			// Right IR CM reading
+	uint8_t pingFrontCM = 0;		// Front Ping CM Reading
 };
 
-extern CRC_Sensors sensors;
+extern CRC_Sensors crcSensors;
 
 #endif
 

@@ -4,7 +4,7 @@ Uses: Provides higher level functions to control Simula's behavioral simulation.
 This file is designed for the Simula project by Chicago Robotics Corp.
 http://www.chicagorobotics.net/products
 
-Copyright (c) 2016, Chicago Robotics Corp.
+Copyright (c) 2018, Chicago Robotics Corp.
 See README.md for license details
 ****************************************************/
 
@@ -23,7 +23,7 @@ CRC_SimulationClass::CRC_SimulationClass() {
 	breathBrightness = 0;
 	breathFadeTimecheck = millis();
 
-	actionActive = false;
+	motionActive = false;
 	perimeterActive = false;
 	turnSpeed = 160;
 	straightSpeed = 180;
@@ -88,4 +88,12 @@ int CRC_SimulationClass::getSineWave(float amplitude, float periodMillis, long m
 	//because LEDs have a hard time displaying negative values.
 	//4) periodMillis = wave frequency / millis
 	return amplitude * sin(periodMillis * TWO_PI * millis - PI / 2) + amplitude;
+}
+
+bool CRC_SimulationClass::ledsActive() {
+	bool retVal = false;
+	if (currentAnimation > 0) {
+		retVal = true;
+	}
+	return retVal;
 }

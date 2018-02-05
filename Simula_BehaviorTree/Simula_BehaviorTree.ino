@@ -1,9 +1,10 @@
 /*
  Name:		Simula_BehaviorTree.ino
- Created:	6/11/2016 2:05:02 PM
+ Created:	6/11/2018 2:05:02 PM
  Author:	jlaing
 */
 
+#include "CRC_IP_Network.h"
 #include "CRC_Simulation.h"
 #include "CRC_AudioManager.h"
 #include "CRC_PCA9635.h"
@@ -16,6 +17,10 @@
 #include "CRC_IR_AnalogDistance.h"
 #include "CRC_DistanceSensor.h"
 #include "CRC_Motor.h"
+#include "CRC_Logger.h"
+#include "CRC_ConfigurationManager.h"
+#include "CRC_ZigbeeController.h"
+#include "CRC_HttpClient.h"
 #include <SPI.h>
 #include <SD.h>
 #include <Wire.h>
@@ -29,21 +34,26 @@ SdFile root;
 File file;
 
 struct HARDWARE_STATE hardwareState;
-struct TREE_STATE treeState;
 
-CRC_Sensors sensors;
-CRC_HardwareClass hardware;
+CRC_Sensors crcSensors;
+CRC_HardwareClass crcHardware;
 CRC_SimulationClass simulation;
-CRC_Motor motorLeft(hardware.enc1A, hardware.enc1B, hardware.mtr1Enable, hardware.mtr1In1, hardware.mtr1In2);
-CRC_Motor motorRight(hardware.enc2A, hardware.enc2B, hardware.mtr2Enable, hardware.mtr2In1, hardware.mtr2In2);
+CRC_Motor motorLeft(crcHardware.enc1A, crcHardware.enc1B, crcHardware.mtr1Enable, crcHardware.mtr1In1, crcHardware.mtr1In2);
+CRC_Motor motorRight(crcHardware.enc2A, crcHardware.enc2B, crcHardware.mtr2Enable, crcHardware.mtr2In1, crcHardware.mtr2In2);
 CRC_Motors motors;
-CRC_LightsClass crcLights(hardware.i2cPca9635Left, hardware.i2cPca9635Right);
+CRC_LightsClass crcLights(crcHardware.i2cPca9635Left, crcHardware.i2cPca9635Right);
 CRC_AudioManagerClass crcAudio;
+CRC_LoggerClass crcLogger;
+CRC_ConfigurationManagerClass crcConfigurationManager;
+CRC_ZigbeeController crcZigbeeWifi;
+CRC_HttpClient httpClient(crcZigbeeWifi);
+String robotId = "";
 
 Behavior_Tree behaviorTree;
-Behavior_Tree::Selector selector[3];
-Behavior_Tree::RandomSelector randomSort[1];
-Button_Stop buttonStop;
+Behavior_Tree::Selector selector[1];
+Behavior_Tree::Sequence sequence;
+Behavior_Tree::RandomSelector randomSort;
+Button_Gate buttonGateA(crcHardware.pinButtonA, "Button A"), buttonGateB(crcHardware.pinButtonB, "Button B");
 Battery_Check batteryCheck;
 Cliff_Center cliffCenter;
 Cliff_Left cliffLeft;
@@ -54,90 +64,131 @@ Perimeter_Right perimeterRight;
 Orientation_Check orientationCheck;
 Forward_Random forwardRandom(20);
 Turn_Random turnLeft(15, true), turnRight(15, false);
-Do_Nothing doNothing(80);
+Do_Nothing doNothing(80), doNothing2(60);
 
 void setup() {
 	Serial.begin(115200);
-	Serial.println(F("Booting."));
-	
-	//Visualize the tree here: https://www.gliffy.com/go/publish/10755293
-	initializeSystem();
-	behaviorTree.setRootChild(&selector[0]);
-	selector[0].addChildren({ &buttonStop, &batteryCheck, &orientationCheck, &selector[1], &randomSort[0] });
-	selector[1].addChildren({ &perimeterCenter, &perimeterLeft, &perimeterRight, &cliffCenter, &cliffLeft, &cliffRight });
-	randomSort[0].addChildren({ &forwardRandom, &doNothing, &turnLeft, &turnRight });
+	crcLogger.addLogDestination(&Serial); // Log to Serial port
+	crcLogger.setLevel(crcLogger.LOG_INFO);  //Set logging verbosity.
+	crcLogger.log(crcLogger.LOG_INFO, F("Booting Simula."));
 
+	//Lots of setup work here
+	initializeSystem();
+	
+	//Behavior Tree construction. Visualize: https://www.gliffy.com/go/publish/10755293
+	behaviorTree.setRootChild(&sequence);
+	sequence.addChildren({ &buttonGateA, &buttonGateB });
+	buttonGateA.addChildren({ &batteryCheck, &orientationCheck, &selector[0], &randomSort });
+	selector[0].addChildren({ &perimeterCenter, &perimeterLeft, &perimeterRight, &cliffCenter, &cliffLeft, &cliffRight });
+	randomSort.addChildren({ &forwardRandom, &doNothing, &turnLeft, &turnRight });
+
+	//Lighting display
 	crcLights.setRandomColor();
 	crcLights.showRunwayWithDelay();
+
 	//MP3 Player & Amplifier
 	crcAudio.setAmpGain(1); //0 = low, 3 = high
 	crcAudio.setVolume(50, 50); //0 = loudest, 60 = softest ?
-	
-	if (hardware.sdInitialized) {
+	delay(2000);
+	crcZigbeeWifi.init(Serial2);
+	crcLogger.log(crcLogger.LOG_INFO, F("Setup complete."));
+
+	if (!crcConfigurationManager.getConfig(F("unit.id"), robotId))
+	{
+		robotId = "";
+	}
+
+	if (hardwareState.sdInitialized) {
 		crcAudio.playRandomAudio(F("effects/PwrUp_"), 10, F(".mp3"));
 	}
-	Serial.println(F("Setup complete."));
 }
 
 void loop() {
 	crcAudio.tick();
 	simulation.tick();
-	if (treeState.treeActive)
-	{
-		sensors.lsm.read();
-		if (!sensors.irReadingUpdated()) {
-			sensors.readIR();
-		}
-	}
+	crcHardware.tick();
+	toggleButtons();
 	
 	if (!behaviorTree.run()) {
-		Serial.println(F("All tree nodes returned false."));
+		crcLogger.log(crcLogger.LOG_INFO, F("All tree nodes returned false."));
 	}
 }
 
-void initializeSystem() {
-	sensors.init();
-	Serial.println(F("LSM instantiated."));
-	hardware.init();
-	Serial.println(F("Hardware initialized."));
-	crcLights.init();
-	Serial.println(F("Lights initialized."));
+void toggleButtons() {
+	//If buttonGateA or buttonGateB are open, sensors active.
+	//If buttonGateA & buttonGateB are closed, sensors deactive.
 
-	if (crcAudio.init()) {
-		hardwareState.audioPlayer = true;
-		Serial.println(F("Audio initialized."));
+	if (buttonGateA.isClosed() && buttonGateB.isClosed()) {
+		if (hardwareState.sensorsActive) {
+			deactivateSensors();
+		}
 	}
 	else {
-		Serial.println(F("Audio chip not detected."));
+		if (!hardwareState.sensorsActive) {
+			activateSensors();
+		}
+		crcSensors.imu.read();
+		if (!crcSensors.irReadingUpdated()) {
+			crcSensors.readIR();
+		}
 	}
-	if (!sensors.lsm.begin())
+
+	if (!buttonGateA.isClosed() && !simulation.ledsActive()) {
+		simulation.showLedBio();
+	}
+
+	if (buttonGateA.isClosed() && simulation.ledsActive()) {
+		simulation.showLedNone();
+	}
+
+	if (!buttonGateB.isClosed() && httpClient.isAvailable()) {
+		httpClient.sendUpdate(robotId);
+	}
+}
+
+void activateSensors() {
+	crcSensors.activate();
+}
+
+void deactivateSensors() {
+	motors.allStop();
+	crcSensors.deactivate();
+	simulation.showLedNone();
+	crcLights.setButtonLevel(0);
+}
+
+void initializeSystem() {
+	crcHardware.init();
+	crcHardware.announceBatteryVoltage();
+	crcLights.init();
+	crcAudio.init();
+	crcSensors.init();
+	if (!crcSensors.imu.begin())
 	{
-		Serial.println(F("Oops ... unable to initialize the LSM9DS0. Check your wiring!"));
+		crcLogger.log(crcLogger.LOG_ERROR, F("Unable to detect IMU."));
 	}
 	else
 	{
-		Serial.println(F("Setting IMU attributes."));
 		// 1.) Set the accelerometer range
-		sensors.lsm.setupAccel(sensors.lsm.LSM9DS0_ACCELRANGE_2G);
+		crcSensors.imu.setupAccel(crcSensors.imu.LSM9DS0_ACCELRANGE_2G);
 		// 2.) Set the magnetometer sensitivity
-		sensors.lsm.setupMag(sensors.lsm.LSM9DS0_MAGGAIN_2GAUSS);
+		crcSensors.imu.setupMag(crcSensors.imu.LSM9DS0_MAGGAIN_2GAUSS);
 		// 3.) Setup the gyroscope
-		sensors.lsm.setupGyro(sensors.lsm.LSM9DS0_GYROSCALE_245DPS);
+		crcSensors.imu.setupGyro(crcSensors.imu.LSM9DS0_GYROSCALE_245DPS);
 		Serial.println(F("IMU configured."));
-	}
+	}	
 
-	//Check battery voltage.
-	float postVoltage = hardware.readBatteryVoltage();
+	//Initialize the motors
 	motors.initialize(&motorLeft, &motorRight);
 
-	if (!SD.begin(hardware.sdcard_cs)) {
-		Serial.println(F("SD card init failure."));
-		hardware.sdInitialized = false;
+	if (!SD.begin(crcHardware.sdcard_cs)) {
+		crcLogger.log(crcLogger.LOG_ERROR, F("SD card not detected."));
+		hardwareState.sdInitialized = false;
 	}
 	else
 	{
-		Serial.println(F("SD card initialized."));
-		hardware.sdInitialized = true;
+		crcLogger.log(crcLogger.LOG_INFO, F("SD card initialized."));
+		hardwareState.sdInitialized = true;
 	}
 }
 

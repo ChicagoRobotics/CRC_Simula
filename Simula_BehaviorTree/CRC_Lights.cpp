@@ -4,12 +4,13 @@ Uses: Provides higher level functions to control Simula's LEDs.
 This file is designed for the Simula project by Chicago Robotics Corp.
 http://www.chicagorobotics.net/products
 
-Copyright (c) 2016, Chicago Robotics Corp.
+Copyright (c) 2018, Chicago Robotics Corp.
 See README.md for license details
 ****************************************************/
 
 #include "CRC_Lights.h"
 #include "CRC_Hardware.h"
+#include "CRC_Logger.h"
 #define LIGHTS_LED_DEFINITION_COUNT     10
 
 struct LIGHTS_LED_DEFINITION {
@@ -101,9 +102,10 @@ void CRC_LightsClass::init()
 {
 	ledLeft.init();
 	ledRight.init();
+	crcLogger.log(crcLogger.LOG_INFO, F("Lights initialized."));
 }
 void CRC_LightsClass::setButtonLevel(uint8_t level) {
-	analogWrite(hardware.pinButtonLED, level);
+	analogWrite(crcHardware.pinButtonLED, level);
 }
 void CRC_LightsClass::showRunwayWithDelay() {
 
@@ -137,9 +139,9 @@ void CRC_LightsClass::setAllOff() {
 	}
 }
 void CRC_LightsClass::setRandomColor(){
-	color_R = hardware.getRandomNumberInRange(0, 255);
-	color_G = hardware.getRandomNumberInRange(0, 255);
-	color_B = hardware.getRandomNumberInRange(0, 255);
+	color_R = crcHardware.getRandomNumberInRange(0, 255);
+	color_G = crcHardware.getRandomNumberInRange(0, 255);
+	color_B = crcHardware.getRandomNumberInRange(0, 255);
 }
 
 /*

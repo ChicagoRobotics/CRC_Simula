@@ -6,7 +6,7 @@ board revision, as well as module initializations.
 This file is designed for the Simula project by Chicago Robotics Corp.
 http://www.chicagorobotics.net/products
 
-Copyright (c) 2016, Chicago Robotics Corp.
+Copyright (c) 2018, Chicago Robotics Corp.
 See README.md for license details
 ****************************************************/
 
@@ -24,13 +24,16 @@ struct HARDWARE_STATE {
 	uint16_t freeRam = 0;       // Free RAM in bytes
 	int8_t leftMotor = 0;       // -100 -> 100
 	int8_t rightMotor = 0;       // -100 -> 100	
-	boolean sdCard = false;      // SD Card initialized/available state
-	boolean audioPlayer = false; // Audi Player state
+	boolean sdInitialized = false;      // SD card initialized/available state
+	boolean audioPlayer = false; // Audio player state
 	boolean audioPlaying = false; // Is the audio player playing
 	uint8_t wireless = 0x00;     // Wireless Status
 	unsigned long loopLastTimeMillis = 0; // Last Time in millis
 	unsigned long loopMinTimeMillis = 0;  // Min Time in millis
 	unsigned long loopMaxTimeMillis = 0;  // Max Time in millis
+	float batteryVoltage = 0;  // Detected voltage of battery
+	boolean batteryLow = true;
+	boolean sensorsActive = false;
 };
 extern struct HARDWARE_STATE hardwareState;
 
@@ -43,7 +46,9 @@ public:
 #define _CRC_BOARD_VER_    ALPHA
 	const byte enc1A = 3;
 	const byte enc1B = 2;
-	const byte pinButton = 5;
+	const byte pinButtonA = 5;
+	const byte pinButtonB = 38;
+	const byte pinButtonC = A3;
 	const byte pinButtonLED = 13;
 	const byte enc2A = 18;
 	const byte enc2B = 19;
@@ -81,7 +86,7 @@ public:
 	const byte pinFrntIr = A8;
 	const byte pinActFrntIR = 29;
 	const byte irMinimumCM = 3;
-	const float lowBatteryVoltage = 6.3;
+	
 
 	// Ping Sensors
 	const byte pinPingEcho = 6;
@@ -97,21 +102,25 @@ public:
 	const uint8_t i2cPca9635Left = 0x00;
 	const uint8_t i2cPca9635Right = 0x01;
 
+	//Battery related
+	const float lowBatteryVoltage = 6.3; // Cutoff on battery voltage, below this Simula unstable
+	const int battCheckIntervalMs = 1000;  // How often batteries are checked, in millis
+
 #endif
 	void init();
+	void tick();
 	void startScanStatus(unsigned long startTime);
 	void endScanStatus(unsigned long startTime);
 	void seedRandomGenerator();
-	float readBatteryVoltage();
+	void announceBatteryVoltage();
 	int getRandomNumberInRange(int lowest, int highest);
-	bool sdInitialized;
 private:
 	void setupPins();
 	void setupI2C();
 	void setupSPI();
 };
 
-extern CRC_HardwareClass hardware;
+extern CRC_HardwareClass crcHardware;
 
 #endif
 

@@ -1,6 +1,6 @@
 /*
 Name:		BehaviorTree.h
-Created:	6/11/2016 2:05:02 PM
+Created:	6/11/2018 2:05:02 PM
 Author:	jlaing
 */
 
@@ -8,29 +8,25 @@ Author:	jlaing
 #define _BEHAVIORTREE_h
 
 #if defined(ARDUINO) && ARDUINO >= 100
-	#include "arduino.h"
+#include "arduino.h"
 #else
-	#include "WProgram.h"
+#include "WProgram.h"
 #endif
 
 #include "CRC_Motor.h"
 #include "CRC_Sensors.h"
 #include "CRC_AudioManager.h"
 #include "CRC_Lights.h"
+#include "CRC_Logger.h"
 #include <StandardCplusplus.h>
 #include <list>
 #include <vector>
 #include <initializer_list>
 #include <algorithm>
 
-struct TREE_STATE {
-	bool treeActive = false;
-};
-extern struct TREE_STATE treeState;
-
 class Behavior_Tree {  // Note:  A proper copy constructor and assignment operator should be defined, since the implicit ones use shallow copies only.
 private:
-	
+
 public:
 	class Node {  // This class represents each node in the behaviour tree.
 	public:
@@ -47,10 +43,10 @@ public:
 		template <typename CONTAINER>
 		void addChildren(const CONTAINER& newChildren) { for (Node* child : newChildren) addChild(child); }
 	protected:
-		std::vector<Node*> childrenShuffled() const { 
-			std::vector<Node*> temp = children;  
-			std::random_shuffle(temp.begin(), temp.end());  
-			return temp; 
+		std::vector<Node*> childrenShuffled() const {
+			std::vector<Node*> temp = children;
+			std::random_shuffle(temp.begin(), temp.end());
+			return temp;
 		}
 	};
 
@@ -87,58 +83,58 @@ public:
 		}
 	};
 
-	class Root : public Node {
+	class Root : public Node
+	{
 	private:
-		Node* child;
+		Node * child;
 		friend class Behavior_Tree;
 		void setChild(Node* newChild) { child = newChild; }
 		virtual bool run() override { return child->run(); }
 	};
 private:
-	Root* root;
+	Root * root;
 public:
 	Behavior_Tree() : root(new Root) {}
 	void setRootChild(Node* rootChild) const { root->setChild(rootChild); }
 	bool run() const { return root->run(); }
 };
-class Button_Stop : public Behavior_Tree::Node {
+class Button_Gate : public Behavior_Tree::Selector {
+public:
+	bool isClosed() { return _gateClosed; }
+	Button_Gate(int buttonNum, char* name) : _buttonNum(buttonNum), _name(name) {}
 private:
-	bool buttonState = true;
-	int lastButtonState = HIGH;
+	char* _name;
+	bool _gateClosed = true;
+	int _buttonState = HIGH;
+	int _lastButtonState = HIGH;
+	int _buttonNum;
 	unsigned long debounceTime;
-	const long debounceDelay = 10;
+	long debounceDelay = 10;
 	virtual bool run() override {
-		int reading = digitalRead(hardware.pinButton);
-		if (reading != lastButtonState) {
+		int _reading = digitalRead(_buttonNum);
+		if (_reading != _lastButtonState) {
 			debounceTime = millis();
 		}
 
-		if ((millis() - debounceTime) > debounceDelay) {
-			if (reading != buttonState) {
-				buttonState = reading;
-				if (buttonState == HIGH) {
-					treeState.treeActive = !treeState.treeActive;
-					if (!treeState.treeActive)
-					{
-						Serial.println(F("Behavior tree off."));
-						motors.allStop();
-						sensors.deactivate();
-						simulation.showLedNone();
-						crcLights.setButtonLevel(0);
-					}
-					else {
-						Serial.println(F("Activating behavior tree."));
-						sensors.activate();
-						simulation.showLedBio();
-						delay(50);
-						//return true to allow sensors to read before next tree loop.
-						return true;
-					}
+		if (((millis() - debounceTime) > debounceDelay) && (_reading != _buttonState)) {
+			_buttonState = _reading;
+			if (_buttonState == HIGH) {
+				_gateClosed = !_gateClosed;
+				if (_gateClosed) {
+					crcLogger.logF(crcLogger.LOG_INFO, F("Closed button gate %s."), _name);
+				}
+				else {
+					crcLogger.logF(crcLogger.LOG_INFO, F("Opened button gate %s."), _name);
 				}
 			}
 		}
-		lastButtonState = reading;
-		return !treeState.treeActive;
+		_lastButtonState = _reading;
+		if (!_gateClosed) {
+			for (Node* child : getChildren()) {
+				child->run();
+			}
+			return true;
+		}
 	}
 };
 class Battery_Check : public Behavior_Tree::Node {
@@ -146,34 +142,27 @@ private:
 	bool nodeActive = false;
 	unsigned long now;
 	unsigned long lastCheck = 0;
-	int interval = 10000;
+	int interval = 1000;
 	virtual bool run() override {
 		now = millis();
 		if (!nodeActive) {
-			if ((lastCheck == 0) || (now > lastCheck + interval)) {
-				lastCheck = now;
-				float postVoltage = hardware.readBatteryVoltage();
-				if (postVoltage < hardware.lowBatteryVoltage) {
-					nodeActive = true;
-					Serial.print(F("Batteries low. Measurement: "));
-					Serial.println(postVoltage);
-					Serial.print(F("below threshold of: "));
-					Serial.println(hardware.lowBatteryVoltage);
-					crcAudio.playRandomAudio("effects/PwrDn_", 10, ".mp3");
-				}
+			if (hardwareState.batteryVoltage < crcHardware.lowBatteryVoltage) {
+				crcHardware.announceBatteryVoltage();
+				nodeActive = true;
+				crcAudio.playRandomAudio("effects/PwrDn_", 10, ".mp3");
 			}
 		}
+		//TODO: add ability to reactivate when batteries are good.
 		return nodeActive;
 	}
 };
-
 class Orientation_Check : public Behavior_Tree::Node {
 private:
 	bool nodeActive = false;
 	const int Z_Orient_Min = 15000;
 	virtual bool run() override {
 
-		if ((sensors.lsm.accelData.z < Z_Orient_Min) && (!motors.active()) && (!crcAudio.isPlayingAudio())) {
+		if ((!motors.active()) && (!crcAudio.isPlayingAudio()) && (crcSensors.imu.accelData.z < Z_Orient_Min)) {
 			crcAudio.playRandomAudio(F("emotions/scare_"), 9, F(".mp3"));
 			//Serial.print("Z: ");
 			//Serial.println(sensors.lsm.accelData.z);
@@ -196,7 +185,6 @@ private:
 		Serial.print("Temp: "); Serial.print((int)sensors.lsm.temperature);    Serial.println(" ");*/
 	}
 };
-
 class Cliff_Center : public Behavior_Tree::Node {
 private:
 	bool nodeActive = false;
@@ -208,17 +196,17 @@ private:
 		currentTime = millis();
 
 		if (!nodeActive) {
-			if (sensors.irLeftCliff && sensors.irRightCliff && motors.active()) {
+			if (crcSensors.irLeftCliff && crcSensors.irRightCliff && motors.active()) {
 				nodeActive = true;
-				Serial.println(F("Cliff center detected."));
+				crcLogger.logF(crcLogger.LOG_INFO, F("Cliff center detected."));
 				nodeStartTime = currentTime;
 				motors.setPower(-simulation.straightSpeed, -simulation.straightSpeed);
 			}
 		}
 		else
 		{
-			if ((nodeStartTime + duration < currentTime) && (!sensors.irLeftCliff && !sensors.irRightCliff)) {
-				Serial.println(F("Cliff center complete."));
+			if ((nodeStartTime + duration < currentTime) && (!crcSensors.irLeftCliff && !crcSensors.irRightCliff)) {
+				crcLogger.logF(crcLogger.LOG_INFO, F("Cliff center complete."));
 				nodeActive = false;
 				nodeStartTime = 0;
 				motors.allStop();
@@ -240,8 +228,8 @@ private:
 		currentTime = millis();
 
 		if (!nodeActive) {
-			if (sensors.irLeftCliff && !sensors.irRightCliff && motors.active()) {
-				Serial.println(F("Cliff left detected."));
+			if (crcSensors.irLeftCliff && !crcSensors.irRightCliff && motors.active()) {
+				crcLogger.logF(crcLogger.LOG_INFO, F("Cliff left detected."));
 				nodeStartTime = currentTime;
 				nodeActive = true;
 				motors.setPower(-simulation.straightSpeed, -simulation.straightSpeed);
@@ -249,12 +237,12 @@ private:
 		}
 		else {
 			if ((nodeStartTime + backDuration < currentTime) && !turnStarted) {
-				Serial.println(F("Cliff left turning."));
+				crcLogger.logF(crcLogger.LOG_INFO, F("Cliff left turning."));
 				turnStarted = true;
 				motors.setPower(simulation.turnSpeed, -simulation.turnSpeed);
 			}
 			if (nodeStartTime + backDuration + turnDuration < currentTime) {
-				Serial.println(F("Cliff left stopping."));
+				crcLogger.logF(crcLogger.LOG_INFO, F("Cliff left complete."));
 				nodeStartTime = 0;
 				motors.allStop();
 				nodeActive = false;
@@ -276,8 +264,8 @@ private:
 
 		currentTime = millis();
 		if (!nodeActive) {
-			if (!sensors.irLeftCliff && sensors.irRightCliff && motors.active()) {
-				Serial.println(F("Cliff right detected."));
+			if (!crcSensors.irLeftCliff && crcSensors.irRightCliff && motors.active()) {
+				crcLogger.logF(crcLogger.LOG_INFO, F("Cliff right detected."));
 				nodeStartTime = currentTime;
 				nodeActive = true;
 				motors.setPower(-simulation.straightSpeed, -simulation.straightSpeed);
@@ -285,12 +273,12 @@ private:
 		}
 		else {
 			if ((nodeStartTime + backDuration < currentTime) && !turnStarted) {
-				Serial.println(F("Cliff right turning."));
+				crcLogger.logF(crcLogger.LOG_INFO, F("Cliff right turning."));
 				turnStarted = true;
 				motors.setPower(-simulation.turnSpeed, simulation.turnSpeed);
 			}
 			if (nodeStartTime + backDuration + turnDuration < currentTime) {
-				Serial.println(F("Cliff right stopping."));
+				crcLogger.logF(crcLogger.LOG_INFO, F("Cliff right complete."));
 				nodeStartTime = 0;
 				motors.allStop();
 				nodeActive = false;
@@ -300,7 +288,6 @@ private:
 		return nodeActive;
 	}
 };
-
 class Perimeter_Center : public Behavior_Tree::Node {
 private:
 	bool nodeActive = false;
@@ -311,32 +298,28 @@ private:
 	virtual bool run() override {
 		currentTime = millis();
 		if (!nodeActive) {
-			if ((sensors.irFrontCM < alarmCM && sensors.irFrontCM > hardware.irMinimumCM) && (!simulation.perimeterActive)) {
+			if ((crcSensors.irFrontCM < alarmCM && crcSensors.irFrontCM > crcHardware.irMinimumCM) && (!simulation.perimeterActive)) {
 				nodeStartTime = currentTime;
 				nodeActive = true;
 				simulation.perimeterActive = true;
-				Serial.print(F("Permimeter center alarm: "));
-				Serial.println(sensors.irFrontCM);
+				crcLogger.logF(crcLogger.LOG_INFO, F("Perimeter center activated, CM=%ul"), crcSensors.irFrontCM);
 				//50% chance of turning either directon
 				long randNum = random(1, 101);
-
-				Serial.print(F("random number: "));
-				Serial.println(randNum);
 				if (randNum <= 50) {
-					Serial.println(F("Turning left."));
+					crcLogger.logF(crcLogger.LOG_INFO, F("Turning left."));
 					motors.setPower(-simulation.turnSpeed, simulation.turnSpeed);
 				}
 				else
 				{
-					Serial.println(F("Turning right."));
+					crcLogger.logF(crcLogger.LOG_INFO, F("Turning right."));
 					motors.setPower(simulation.turnSpeed, -simulation.turnSpeed);
 				}
 				return nodeActive;
 			}
 		}
 		else {
-			if ((nodeStartTime + duration < currentTime) && (sensors.irFrontCM >= alarmCM)) {
-				Serial.println(F("Perimeter center complete."));
+			if ((nodeStartTime + duration < currentTime) && (crcSensors.irFrontCM >= alarmCM)) {
+				crcLogger.logF(crcLogger.LOG_INFO, F("Perimeter center complete."));
 				motors.allStop();
 				nodeStartTime = 0;
 				nodeActive = false;
@@ -356,18 +339,17 @@ private:
 	virtual bool run() override {
 		currentTime = millis();
 		if (!nodeActive) {
-			if ((sensors.irLeftFrontCM < alarmCM && sensors.irLeftFrontCM > hardware.irMinimumCM) && !simulation.perimeterActive) {
+			if ((crcSensors.irLeftFrontCM < alarmCM && crcSensors.irLeftFrontCM > crcHardware.irMinimumCM) && !simulation.perimeterActive) {
 				nodeStartTime = currentTime;
 				nodeActive = true;
 				simulation.perimeterActive = true;
-				Serial.print(F("Permimeter left front alarm: "));
-				Serial.println(sensors.irLeftFrontCM);
+				crcLogger.logF(crcLogger.LOG_INFO, F("Perimeter left front activated, CM=%ul"), crcSensors.irLeftFrontCM);
 				motors.setPower(simulation.turnSpeed, -simulation.turnSpeed);
 			}
 		}
 		else {
-			if ((nodeStartTime + duration < currentTime) && sensors.irLeftFrontCM >= alarmCM) {
-				Serial.println(F("Perimeter left front complete."));
+			if ((nodeStartTime + duration < currentTime) && crcSensors.irLeftFrontCM >= alarmCM) {
+				crcLogger.logF(crcLogger.LOG_INFO, F("Perimeter left front complete."));
 				motors.allStop();
 				nodeStartTime = 0;
 				nodeActive = false;
@@ -387,18 +369,17 @@ private:
 	virtual bool run() override {
 		currentTime = millis();
 		if (!nodeActive) {
-			if ((sensors.irRightFrontCM < alarmCM && sensors.irRightFrontCM > hardware.irMinimumCM) && !simulation.perimeterActive) {
+			if ((crcSensors.irRightFrontCM < alarmCM && crcSensors.irRightFrontCM > crcHardware.irMinimumCM) && !simulation.perimeterActive) {
 				nodeStartTime = currentTime;
 				nodeActive = true;
 				simulation.perimeterActive = true;
-				Serial.print(F("Permimeter right front alarm: "));
-				Serial.println(sensors.irRightFrontCM);
+				crcLogger.logF(crcLogger.LOG_INFO, F("Perimeter right front activated, CM=%ul"), crcSensors.irRightFrontCM);
 				motors.setPower(-simulation.turnSpeed, simulation.turnSpeed);
 			}
 		}
 		else {
-			if ((nodeStartTime + duration < currentTime) && sensors.irRightFrontCM >= alarmCM) {
-				Serial.println(F("Perimeter right front complete."));
+			if ((nodeStartTime + duration < currentTime) && crcSensors.irRightFrontCM >= alarmCM) {
+				crcLogger.logF(crcLogger.LOG_INFO, F("Perimeter right front complete."));
 				motors.allStop();
 				nodeStartTime = 0;
 				nodeActive = false;
@@ -408,7 +389,6 @@ private:
 		return nodeActive;
 	}
 };
-
 class Do_Nothing : public Behavior_Tree::Node {
 	//This function is checked every checkInterval to see if it should run.
 	//The interval is randomized, as is the duration of the time doing nothing.
@@ -424,27 +404,24 @@ private:
 
 	virtual bool run() override {
 		currentTime = millis();
-		if (!nodeActive && !simulation.actionActive) {
+		if (!nodeActive && !simulation.motionActive) {
 			long randNum = random(1, 101);
-			Serial.print(F("Do_Nothing number: "));
-			Serial.println(randNum);
 			if (randNum <= percentChance) {
 				nodeActive = true;
-				simulation.actionActive = true;
+				simulation.motionActive = true;
 				nodeStartTime = currentTime;
-				Serial.println(F("Do_Nothing active."));
+				crcLogger.logF(crcLogger.LOG_INFO, F("Do_Nothing active."));
 			}
 		}
 		if (nodeActive && (nodeStartTime + duration < currentTime)) {
-			Serial.println(F("Do_Nothing finished."));
-			simulation.actionActive = false;
+			crcLogger.logF(crcLogger.LOG_INFO, F("Do_Nothing complete."));
+			simulation.motionActive = false;
 			nodeActive = false;
 			nodeStartTime = 0;
 		}
 		return nodeActive;
 	}
 };
-
 class Forward_Random : public Behavior_Tree::Node {
 	//This function is checked every checkInterval to see if it should run.
 	//The interval is randomized, as is the duration of the time doing nothing.
@@ -460,29 +437,26 @@ private:
 
 	virtual bool run() override {
 		currentTime = millis();
-		if (!nodeActive && !simulation.actionActive) {
+		if (!nodeActive && !simulation.motionActive) {
 			long randNum = random(1, 101);
 			duration = random(100, 2000);
-			Serial.print(F("Forward_Random number: "));
-			Serial.println(randNum);
 			if (randNum <= percentChance) {
 				nodeActive = true;
-				simulation.actionActive = true;
+				simulation.motionActive = true;
 				nodeStartTime = currentTime;
-				Serial.println(F("Forward_Random active."));
+				crcLogger.logF(crcLogger.LOG_INFO, F("Forward_Random active, duration = %ul ms."), duration);
 				motors.setPower(simulation.straightSpeed, simulation.straightSpeed);
 			}
 		}
 		if (nodeActive && (nodeStartTime + duration < currentTime)) {
-			Serial.println(F("Forward_Random finished."));
-			simulation.actionActive = false;
+			crcLogger.logF(crcLogger.LOG_INFO, F("Forward_Random complete."));
+			simulation.motionActive = false;
 			nodeActive = false;
 			nodeStartTime = 0;
 		}
 		return nodeActive;
 	}
 };
-
 class Turn_Random : public Behavior_Tree::Node {
 	//This function is checked every checkInterval to see if it should run.
 	//The interval is randomized, as is the duration of the time doing nothing.
@@ -491,37 +465,33 @@ public:
 private:
 	int percentChance;
 	bool _clockwise;
-
 	bool nodeActive = false;
 	long duration;
 	unsigned long currentTime;
 	unsigned long nodeStartTime = 0;
-	
+
 	virtual bool run() override {
 		currentTime = millis();
-		if (!nodeActive && !simulation.actionActive){
+		if (!nodeActive && !simulation.motionActive) {
 			long randNum = random(1, 101);
-			Serial.print(F("turnRandom number: "));
-			Serial.println(randNum);
 			if (randNum <= percentChance) {
 				duration = random(50, 1500);
 				nodeActive = true;
-				simulation.actionActive = true;
+				simulation.motionActive = true;
 				simulation.perimeterActive = true;
 				nodeStartTime = currentTime;
-				Serial.println(F("turnRandom active."));
+				crcLogger.logF(crcLogger.LOG_INFO, F("Turn_Random active, duration = %ul ms."), duration);
 				if (_clockwise) {
 					motors.setPower(-simulation.turnSpeed, simulation.turnSpeed);
 				}
 				else {
 					motors.setPower(simulation.turnSpeed, -simulation.turnSpeed);
 				}
-				
 			}
 		}
-		if(nodeActive && (nodeStartTime + duration < currentTime)){
-			Serial.println(F("turnRandom finished."));
-			simulation.actionActive = false;
+		if (nodeActive && (nodeStartTime + duration < currentTime)) {
+			crcLogger.logF(crcLogger.LOG_INFO, F("Turn_Random complete."));
+			simulation.motionActive = false;
 			simulation.perimeterActive = false;
 			motors.allStop();
 			nodeActive = false;
@@ -530,9 +500,6 @@ private:
 		return nodeActive;
 	}
 };
-
-
-
 
 #endif
 

@@ -8,7 +8,7 @@ http://www.chicagorobotics.net/products
 Inspired By:
 URL: https://github.com/adafruit/Adafruit_VS1053_Library
 
-Copyright (c) 2016, Chicago Robotics Corp.
+Copyright (c) 2018, Chicago Robotics Corp.
 See README.md for license details
 ****************************************************/
 
@@ -26,8 +26,7 @@ See README.md for license details
 
 #define VS1053_DATABUFFERLEN 32
 
-class CRC_AudioManagerClass
-{
+class CRC_AudioManagerClass {
 private:
 	boolean _isPlayingAudio;
 	boolean _ampEnabled;
@@ -44,7 +43,6 @@ private:
 	uint8_t spiread(void);
 	void dumpRegs(void);
 	void softReset();
-
 public:
 	boolean init();
 	void reset();
@@ -60,7 +58,6 @@ public:
 	void playRandomAudio(String fileBase, int fileCount, String fileSuffix);
 	void tick();
 };
-
 extern CRC_AudioManagerClass crcAudio;
 
 #endif
