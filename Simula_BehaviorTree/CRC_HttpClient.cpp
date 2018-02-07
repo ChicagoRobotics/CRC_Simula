@@ -73,7 +73,7 @@ void CRC_HttpClient::sendUpdate(String & robotId)
 	Serial.println(szPostData);
 
 	char szTemp[255];
-	sprintf_P(szTemp, (char *) F("POST /api/robotevent HTTP/1.1\r\nHost: %s\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: %d\r\n\r\n%s\r\n"), _simulaWebHostName.c_str(), strlen(szPostData), szPostData);
+	sprintf_P(szTemp, (char *) F("POST /api/Telemetry HTTP/1.1\r\nHost: %s\r\nContent-Type: application/json; charset=utf-8\r\nContent-Length: %d\r\n\r\n%s\r\n"), _simulaWebHostName.c_str(), strlen(szPostData), szPostData);
 
 	crcLogger.logF(crcLogger.LOG_TRACE, F("SEND: %s"), szTemp);
 	_ipNetwork.sendTcpRequest(_simulaWebIp, 80, (uint8_t * )szTemp, strlen(szTemp));
